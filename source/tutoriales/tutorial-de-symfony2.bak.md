@@ -1095,22 +1095,9 @@ endblock %}`. Las plantillas heredan todas las funcionalidades de las
 plantillas que extienden y pueden cambiar el código de los bloques
 heredadados. Como siempre un ejemplo vale más que mil palabras. Fíjate en el
 fichero `app/Resources/view/base.html.twig` que viene de serie en la
-distribución standard de _Symfony2_: `app/Resources/view/base.html.twig`
+distribución standard de _Symfony2_:
 
-    
-     1
-     2
-     3
-     4
-     5
-     6
-     7
-     8
-     9
-    10
-    11
-    12
-    13
+`app/Resources/view/base.html.twig`
     
     <!DOCTYPE html>
     <html>
