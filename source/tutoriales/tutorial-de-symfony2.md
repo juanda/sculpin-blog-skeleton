@@ -5,11 +5,8 @@ title: Tutorial de Symfony2
 ---
 
 > Este tutorial de Symfony2 es la adaptación de la unidad 3 del curso
-> [Desarrollo de aplicaciones web con Symfony2](https://centrovirtual.educacion.
-> es/Symfony14/mentor.php/areasCursosWeb/mostrarInfoCurso/idCurso/958) del
-> proyecto [Aula Mentor](http://www.aulamentor.es).
-
-> [En este enlace](http://juandarodriguez.es/cursosf20/) puedes acceder
+> [Desarrollo de aplicaciones web con Symfony2](https://centrovirtual.educacion.es/Symfony14/mentor.php/areasCursosWeb/mostrarInfoCurso/idCurso/958) del
+> proyecto [Aula Mentor](http://www.aulamentor.es). [En este enlace](http://juandarodriguez.es/cursosf20/) puedes acceder
 > al curso completo
 
 El objetivo este tutorial es ofrecer una visión panorámica del framework PHP
