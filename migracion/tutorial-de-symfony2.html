@@ -1,0 +1,3001 @@
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Este tutorial de Symfony2 es la adaptación de la unidad 3 del curso <a class="reference external" href="https://centrovirtual.educacion.es/Symfony14/mentor.php/areasCursosWeb/mostrarInfoCurso/idCurso/958">Desarrollo de aplicaciones web con Symfony2</a> del proyecto <a class="reference external" href="http://www.aulamentor.es">Aula Mentor</a>:</p>
+
+<h3 class="last"><span style="color: #800000;"><a title="Curso Symfony2" href="http://juandarodriguez.es/cursosf20/" target="_blank"><span style="color: #800000;">Acceso al curso completo</span></a></span></h3>
+</div>
+El objetivo este tutorial es ofrecer una visión panorámica del framework PHP para el
+desarrollo de aplicaciones web <em>Symfony2</em>. El desarrollo de una sencilla aplicación
+web servirá como elemento vertebrador de este documento.
+
+Para seguir el tutorial necesitarás un entorno con:
+<ul class="simple">
+	<li>un servidor web con PHP 5.3.x (x&gt;2)</li>
+	<li>un servidor MySQL 5</li>
+	<li>tu IDE o editor favorito</li>
+</ul>
+<div class="section" id="descripcion-de-la-aplicacion">
+<h2>Descripción de la aplicación<a class="headerlink" title="Enlazar permanentemente con este título" href="#descripcion-de-la-aplicacion">¶</a></h2>
+Vamos a construir una aplicación web para elaborar y consultar un repositorio
+de alimentos con datos acerca de sus propiedades dietéticas. Utilizaremos una
+base de datos para almacenar dichos datos que consistirá en una sola tabla con
+la siguiente información sobre alimentos:
+<ul class="simple">
+	<li>El nombre del alimento,</li>
+	<li>la energía en kilocalorías ,</li>
+	<li>la cantidad de proteínas,</li>
+	<li>la cantidad hidratos de carbono en gramos</li>
+	<li>la cantidad de fibra en gramos y</li>
+	<li>la cantidad de grasa en gramos,</li>
+</ul>
+todo ello por cada 100 gramos de alimento.
+
+Aunque se trata de una aplicación muy sencilla, cuenta con los elementos
+suficientes para mostrar las características básicas de <em>Symfony2</em>.
+
+Utilizando algún cliente <em>MySQL</em> (<em>phpMyAdmin</em>, por ejemplo) crea la siguiente base
+de datos para almacenar los alimentos e introduce algunos registros para probar la
+aplicación.
+<div class="highlight-sql">
+<div class="highlight">
+<pre><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="o">`</span><span class="n">alimentos</span><span class="o">`</span> <span class="p">(</span>
+  <span class="o">`</span><span class="n">id</span><span class="o">`</span> <span class="nb">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">nombre</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">energia</span><span class="o">`</span> <span class="nb">decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">proteina</span><span class="o">`</span> <span class="nb">decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">hidratocarbono</span><span class="o">`</span> <span class="nb">decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">fibra</span><span class="o">`</span> <span class="nb">decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="o">`</span><span class="n">grasatotal</span><span class="o">`</span> <span class="nb">decimal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="p">)</span>
+<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span>  <span class="k">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8</span><span class="p">;</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="que-es-symfony2">
+<h2>¿Qué es <em>Symfony2</em>?<a class="headerlink" title="Enlazar permanentemente con este título" href="#que-es-symfony2">¶</a></h2>
+La respuesta rápida, no por ello menos cierta, es que <em>Symfony2</em> es un framework
+<em>PHP</em> para el desarrollo de aplicaciones web. Sin embargo, los creadores de
+<em>Symfony2</em> no la darían por buena. Posiblemente tampoco aprobasen completamente
+lo que voy a decir a continuación (¡son unos programadores, además de
+excelentes, muy “quisquillosos”!).
+
+El objetivo principal de <em>Symfony2</em> no es tanto desarrollar otro framework
+<em>PHP</em>, como desarrollar un conjunto de componentes estables, independientes,
+fácilmente acoplables (que no acoplados) para formar sistemas más complejos,
+mediante los cuales se puedan resolver problemas relacionados con el desarrollo
+de aplicaciones web en <em>PHP</em>. Obviamente no es necesario utilizar todos los
+componentes de <em>Symfony2</em>; gracias a su absoluta independencia se pueden
+utilizar únicamente aquellos que se requieran para resolver el problema en
+cuestión. <em>Symfony2</em> se presenta así como una especie de <em>Lego</em> en el mundo del
+desarrollo en <em>PHP</em>.
+
+Con estos componentes, uno de los problemas que se puede resolver es el de la
+creación de un framework de desarrollo web. De hecho, uno de los primeros
+productos que se han construido con estos componentes ha sido el framework de
+desarrollo conocido como <em>Distribución Standard de Symfony2</em>, o más brevemente
+<em>Symfony2</em> sin más. Y es precisamente del estudio de esta distribución de lo que
+trata este tutorial.
+
+Por ello, el término <em>Symfony2</em> puede referirse a:
+<ol class="arabic simple">
+	<li>Los componentes de <em>Symfony2</em></li>
+	<li>El framework de <em>Symfony2</em>, o distribución standard de <em>Symfony2</em>.</li>
+</ol>
+En el momento en que se escribe este texto, lo más probable es que se trate de lo
+segundo.
+
+Los componentes de <em>Symfony2</em>, se están utilizando para otros proyectos <a class="footnote-reference" id="id1" href="#id4">[1]</a>, y
+su uso aumentará cuando dispongan de una documentación tan exhaustiva y bien
+elaborada como la que cuenta en estos momentos el framework <em>Symfony2</em>. Es muy
+probable (ojalá) que cuando este curso vea la luz esta situación haya cambiado <a class="footnote-reference" id="id2" href="#id5">[2]</a>.
+Entonces, a lo mejor sería interesante elaborar otro tutorial sobre los componentes
+de <em>Symfony2</em>, pero sería eso: otro tutorial. Los componentes son los elementos de
+bajo nivel del framework <em>Symfony2</em>, y para utilizar dicho framework no es
+necesario conocerlos.
+
+De todas formas vamos a aprovechar este apartado para enumerar los componentes
+de <em>Symfony2</em>, dando una breve descripción de su funcionalidad. Pero, repetimos:
+no es necesario conocerlos para utilizar el framework, que es de lo que trata este
+tutorial. Damos esta información con el fin de calmar al curioso y de aclarar las
+posibles confusiones que se dan al hablar de <em>Symfony2</em> entre los componentes y el
+framework. Obviamente, el contexto aclarará de que se habla en cada ocasión.
+<table class="docutils" border="1"><colgroup> <col width="16%" /> <col width="84%" /> </colgroup>
+<thead valign="bottom">
+<tr>
+<th class="head">Componente</th>
+<th class="head">Descripción</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/dependency_injection.html">DependencyInjection</a></td>
+<td>Automaticación de la Inyección de dependencias</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/event_dispatcher.html">EventDispatcher</a></td>
+<td>Implementación del patrón observer</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/http_foundation.html">HttpFoundation</a></td>
+<td>Proporciona una capa orientada a objetos para el tratamiento del HTTP</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/dom_crawler.html">DomCrawler</a></td>
+<td>Para navegar el DOM de un documento HTML</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/class_loader.html">ClassLoader</a></td>
+<td>Autoloader que implementa PSR-0 standard (forma standard de autocargar classes con espacios de nombre)</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/css_selector.html">CssSelector</a></td>
+<td>Para convertir un CSS selector en un XPath</td>
+</tr>
+<tr>
+<td>HttpKernel</td>
+<td>Proporciona la parte dinámica de la especificación HTTP</td>
+</tr>
+<tr>
+<td>BrowserKit</td>
+<td>Simula el comportamiento de un Browser</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/templating.html">Templating</a></td>
+<td>Proporciona elementos para construir sistemas de plantillas</td>
+</tr>
+<tr>
+<td>Translation</td>
+<td>Soporte para las traducciones</td>
+</tr>
+<tr>
+<td>Serializer</td>
+<td>Para crear arrays a partir de estructuras complejas como gráficos</td>
+</tr>
+<tr>
+<td>Validator</td>
+<td>Validaciones basadas en JSR-303 Bean Validation specification</td>
+</tr>
+<tr>
+<td>Security</td>
+<td>Infraestructura para el tratamiento de la autentificación y la autorización</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/routing.html">Routing</a></td>
+<td>Potente sistema para asociar rutas a acciones</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/console.html">Console</a></td>
+<td>Para desarrollar herramientas CLI</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/process.html">Process</a></td>
+<td>Para ejecutar procesos del sistema</td>
+</tr>
+<tr>
+<td>Config</td>
+<td>Herramientas para cargar configuraciones de distintas fuentes</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/finder.html">Finder</a></td>
+<td>Para encontrar archivos en el sistema de archivos</td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/locale.html">Locale</a></td>
+<td>Para tratar la localización cuando no está disponible la extensión <tt class="docutils literal"><span class="pre">intl</span></tt></td>
+</tr>
+<tr>
+<td><a class="reference external" href="http://symfony.com/doc/current/components/yaml.html">Yaml</a></td>
+<td>Para la manipulación de archivos de configuración en formato YAML</td>
+</tr>
+<tr>
+<td>Form</td>
+<td>Herramientas para definir formularios, pintarlos y asociarle datos</td>
+</tr>
+</tbody>
+</table>
+Y estas son las “tripas” del monstruo <em>Symfony2</em>. No hablaremos mucho más acerca
+de estos componentes a lo largo del cursos. Pero que sepas que existen.
+Puede que te ayuden a resolver tu próximo proyecto, y muy probablemente sean
+los ladrillos fundamentales con los que se construyan muchas de las aplicaciones
+<em>PHP</em> en un futuro no muy lejano.
+
+</div>
+<div class="section" id="instalacion-y-configuracion-de-symfony2">
+<h2>Instalación y configuración de <em>Symfony2</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#instalacion-y-configuracion-de-symfony2">¶</a></h2>
+A partir de este momento, y mientras no lo especifiquemos explicitamente, cuando
+hablemos de <em>Symfony2</em> nos estamos refiriendo al framework, concretamente a la
+edición estándard.
+
+En este apartado vamos a instalar y configurar <em>Symfony2</em>, y lo dejaremos listo
+para construir la aplicación de gestión de alimentos sobre él.
+
+Bájate de <a class="reference external" href="http://symfony.com/download">http://symfony.com/download</a> la última versión de la rama 2.0 de
+<em>Symfony2</em>. Verás que hay una modalidad normal y otra <em>without vendors</em>. Utiliza
+la primera.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">La modalidad normal contiene todas las librerías de terceros (<em>vendors</em>)
+necesarias para comenzar a trabajar con el framework, mientras que la modalidad
+<em>without vendors</em>, como su nombre indica, viene sin estas librerías, razón
+por lo que hay que instalarlas posteriormente mediante una herramienta incluida
+con <em>Symfony2</em> (<tt class="docutils literal"><span class="pre">bin/vendors</span></tt>) que utiliza el sistema de control de versiones
+<tt class="docutils literal"><span class="pre">git</span></tt> para bajar las últimas versiones desde el repositorio de <em>github</em> <a class="footnote-reference" id="id3" href="#id6">[3]</a>,
+donde se encuentra todo el código de <em>Symfony2</em>.</p>
+
+</div>
+Descompríme el archivo descargado en algún directorio accesible al servidor web,
+esto es, dentro de su <em>Document root</em>. Para que la aplicación funcione, el
+servidor web debe poder escribir en los directorios <tt class="docutils literal"><span class="pre">app/cache</span></tt> y <tt class="docutils literal"><span class="pre">app/logs</span></tt>.
+Si estás utilizando un sistema operativo tipo <em>UNIX</em> (<em>Ubuntu</em>, <em>MacOSX</em>,
+etcétera), la forma más fácil de dar dichos permisos es:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>chmod -R 777 app/cache app/logs</pre>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+Durante toda el tutorial suponemos que has hecho esta operación directamente en
+el <em>Document root</em> del servidor web, de manera que tendrá la siguiente
+estructura de directorios:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>/var/www/    <span class="o">(</span>o donde tengas mapeado tu Document root<span class="o">)</span>
+    |
+    └── Symfony
+        |
+        ├── LICENSE
+        ├── README.md
+        ├── app/
+        ├── bin/
+        ├── deps
+        ├── deps.lock
+        ├── src/
+        ├── vendor/
+        └── web/</pre>
+</div>
+</div>
+<p class="last">Y que tanto el servidor web como el servidor de MySQL están instalado en la
+máquina local.</p>
+
+</div>
+A continuación comprobamos que nuestro sistema cumple los requisitos mínimos
+ejecutando por la interfaz de comandos la siguiente orden:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>php app/check.php</pre>
+</div>
+</div>
+Si el resultado nos señala algún error, debemos resolverlo antes de continuar. Una
+vez que pasemos al menos los requisitos obligatorios (<em>mandatory requirements</em>),
+podemos ejecutar la demo que viene incorporada en la distribución standard de
+<em>Symfony2</em>. Para ello apunta con tu navegador a la siguiente <em>URL</em>:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app_dev.php</pre>
+</div>
+</div>
+¡Y juega un poquito!, Por ejemplo, pica en <em>Run the demo</em> y navega por los
+distintos enlaces. Fíjate en la pinta que tienen las <em>URL’s</em>. La demo muestra el
+código que genera las páginas de la propia demo. Fíjate en él detenidamente.
+Verás que muestra dos partes: el del controlador y el de la plantilla (<em>template</em>).
+Es decir, dos elementos del patrón de diseño MVC (Modelo - Vista - Controlador).
+
+Ya has visto en acción la primera aplicación construida con <em>Symfony2</em>. Ahora
+vamos a describir la manera en que <em>Symfony2</em> organiza el código.
+
+<em>Symfony2</em> organiza los archivos en dos grupos: los que deben estar directamente
+accesibles al servidor web (<em>CSS’s</em>, <em>Javascript</em>, imágenes y el controlador
+frontal) y los que pueden ser incluidos desde el controlador frontal (librerías
+<em>PHP</em> y ficheros de configuración). Los primeros viven en el directorio <tt class="docutils literal"><span class="pre">web</span></tt>,
+y los segundos, según su funcionalidad, están repartidos entre los directorios
+<tt class="docutils literal"><span class="pre">app</span></tt> , <tt class="docutils literal"><span class="pre">src</span></tt> y <tt class="docutils literal"><span class="pre">vendor</span></tt>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+En una instalación en un entorno de producción, el <strong>Document root</strong> del servidor
+web (o del <strong>Virtual host</strong> dedicado para la aplicación), debe coincidir con el
+directorio <tt class="docutils literal"><span class="pre">web</span></tt>, y el resto de directorios deben ubicarse fuera del
+<strong>Document root</strong>. No obstante, en un entorno de desarrollo podemos relajarnos y,
+para no andar afinando las configuraciones del servidor web, se puede ubicar todo
+el código dentro del <strong>Document root</strong>.
+<p class="last">Para paliar el efecto de posibles despistes o malas prácticas por
+desconocimiento, pereza y otras fatales causas, los directorios <tt class="docutils literal"><span class="pre">src</span></tt> y
+<tt class="docutils literal"><span class="pre">app</span></tt>, contienen un fichero <tt class="docutils literal"><span class="pre">.htaccess</span></tt> que indica al servidor web que
+no debe mostrar su contenido.</p>
+
+</div>
+Veamos ahora para que se utiliza cada uno de estos directorios.
+<div class="section" id="el-directorio-web">
+<h3>El directorio web<a class="headerlink" title="Enlazar permanentemente con este título" href="#el-directorio-web">¶</a></h3>
+Poco hay que decir ya de este directorio, aquí encontraremos el controlador
+frontal y todos los <em>assets</em> de la aplicación: <em>CSS’s</em>, <em>Javascipts</em>, imágenes,
+etcétera.
+
+Esta es la estructura del directorio:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>web
+├── app_dev.php
+├── apple-touch-icon.png
+├── app.php
+├── bundles
+│   ├── acmedemo
+│   ├── framework
+│   ├── sensiodistribution
+│   └── webprofiler
+├── config.php
+├── favicon.ico
+└── robots.txt</pre>
+</div>
+</div>
+Podemos ver 3 scripts <em>PHP</em>:
+<ul>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">config.php</span></tt> es un script que asiste en la configuración del framework. No
+es imprescindible. De hecho cuando uno se siente confortable con <em>Symfony2</em>,
+es más sencillo realizar la configuración directamente sobre el código
+fuente. Pero para empezar puede servir de ayuda. Si lo utilizas ten en cuenta
+los permisos de los ficheros del directorio <tt class="docutils literal"><span class="pre">app/config</span></tt>, pues este script
+debe poder escribir allí.</p>
+</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">app.php</span></tt> es el controlador frontal de la aplicación, es decir, es el script
+<em>PHP</em> por el que pasan todas las peticiones. Este script decide el flujo que debe
+seguir la aplicación “observando” los parámetros que se hayan pasado en cada
+petición (<em>request</em>). Un conjunto de parámetros determinado se denomina ruta.
+Veamos algunos ejemplos para aclararlo: en</p>
+<tt class="docutils literal"><span class="pre">http://tu.servidor.web/app.php/articulo/1</span></tt>,
+
+<tt class="docutils literal"><span class="pre">app.php</span></tt>, es el controlador frontal y <tt class="docutils literal"><span class="pre">articulo/1</span></tt> es una ruta de la aplicación.</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">app_dev.php</span></tt> también es el controlador frontal de la aplicación. ¿Cómo?
+¿dos controladores frontales? ¡eso no parece encajar con lo que acabamos de decir!.
+Bueno tranquilos, tiene su explicación. Se trata de lo que se denomina en
+<em>Symfony2</em> el controlador frontal de <strong>desarrollo</strong>. En principio pinta lo
+mismo que <tt class="docutils literal"><span class="pre">app.php</span></tt>, pero le añade una barra de depuración que ofrece
+muchísima información sobre todo lo relacionado con la ejecución del <em>script</em>.
+Puedes ver la barra de depuración en la demo que has ejecutado hace un momento.
+Se encuentra abajo de la página. Explórala un poco, te asombrarás de la cantidad
+de información que te proporciona. Cuando desarrollamos es muy conveniente
+utilizar este controlador frontal, pero en producción NUNCA debe utilizarse,
+pues daríamos a los usuario de la web información que podría comprometer
+nuestro sistema.</p>
+</li>
+</ul>
+Por otro lado los <em>assets</em> se ubicarán en el directorio
+<tt class="docutils literal"><span class="pre">bundles/nombre_bundle</span></tt>, donde <tt class="docutils literal"><span class="pre">nombre_bundle</span></tt> es el nombre del <em>bundle</em> al
+que pertenece el <em>asset</em> en cuestión. Vale, ¿y que es un <em>bundle</em>?, pues por lo
+pronto quedate con que “es la unidad funcional de código que utiliza <em>Symfony2</em>“.
+Algo así como una de las piezas del Lego <em>Symfony2</em>. En la sección
+<a class="reference internal" href="#bundles"><em>Los Bundles: Plugins de primera clase</em></a> hablaremos de estos “personajes” con más detalle.
+
+</div>
+<div class="section" id="el-directorio-app">
+<h3>El directorio <tt class="docutils literal"><span class="pre">app</span></tt><a class="headerlink" title="Enlazar permanentemente con este título" href="#el-directorio-app">¶</a></h3>
+La finalidad de este directorio es alojar a a los scripts <em>PHP</em> encargados de
+los procesos de carga del framework (lo que se conoce como <strong>bootstraping</strong>) y a
+todo lo que tenga que ver con la configuración general de la aplicación.
+Los archivos de este directorio son los encargados de <strong>unir</strong> y dar cohesión a
+los distintos componentes del framework.
+
+Son especialmente importantes los ficheros <tt class="docutils literal"><span class="pre">autoload.php</span></tt> y <tt class="docutils literal"><span class="pre">AppKernel.php</span></tt>,
+ya que hay que tocarlos cada vez que extendemos el framework con nuevas
+funcionalidades, es decir cada vez que incorporamos nuevos <em>bundles</em> (vamos
+poniendo en circulación a esta palabreja que usaremos hasta la saciedad).
+
+En <tt class="docutils literal"><span class="pre">autoload.php</span></tt> se mapean los espacios de nombres contra los directorios en
+los que residirán las clases pertenecientes a dichos espacios de nombre. De
+esa manera el proceso de autocarga de clases sabrá donde tiene que buscar
+las clases cuando se <em>usen</em> dichos espacios, sin necesidad de incluir
+explicitamente (esto es, usando <tt class="docutils literal"><span class="pre">include</span></tt> o <tt class="docutils literal"><span class="pre">require</span></tt> ) los archivos donde se
+definen las clases.
+
+En <tt class="docutils literal"><span class="pre">AppKernel.php</span></tt>, se declaran los <em>bundles</em> que se utilizarán en la
+aplicación.
+
+En el directorio <tt class="docutils literal"><span class="pre">config</span></tt> se encuentran los archivos de configuración de la
+aplicación: <tt class="docutils literal"><span class="pre">config.yml</span></tt>, <tt class="docutils literal"><span class="pre">routing.yml</span></tt> y <tt class="docutils literal"><span class="pre">security.yml</span></tt>.
+
+El sistema de configuración de <em>Symfony2</em> permite trabajar con distintos
+entornos de ejecución. Los más típicos son <tt class="docutils literal"><span class="pre">prod</span></tt>, para producción y
+<tt class="docutils literal"><span class="pre">dev</span></tt>, para desarrollo. Pero se pueden definir tantos entornos como deseemos.
+En el controlador frontal se indica qué entorno deseamos utilizar en la
+ejecución del script. Fíjate en la línea 22 de <tt class="docutils literal"><span class="pre">web/app_dev.php</span></tt>, o en la
+línea 9 del <tt class="docutils literal"><span class="pre">web/app.php</span></tt>:
+<div class="highlight-php">
+<div class="highlight">
+<pre><span class="x">...</span>
+<span class="x">$kernel = new AppKernel('prod', false);</span>
+<span class="x">...</span></pre>
+</div>
+</div>
+El primer argumento decide el entorno de ejecución que se utilizará. ¿Y para que
+sirve esto?. <em>Symfony2</em> utiliza este dato para saber qué ficheros de
+configuración debe cargar. Supongamos, por ejemplo, que se especifica <tt class="docutils literal"><span class="pre">dev</span></tt> como
+entorno de ejecución. Entonces, si existe el fichero <tt class="docutils literal"><span class="pre">config_dev.yml</span></tt> lo cargará,
+y si no es así cargará <tt class="docutils literal"><span class="pre">config.yml</span></tt>. Lo mismo ocurre con los ficheros
+<tt class="docutils literal"><span class="pre">routing.yml</span></tt>, <tt class="docutils literal"><span class="pre">security.yml</span></tt> y <tt class="docutils literal"><span class="pre">services.yml</span></tt>. Más adelante estudiaremos
+para que sirven cada uno de ellos. Por lo pronto nos conformaremos con saber
+la dinámica de funcionamiento.
+
+Los entornos proporcionan mucha flexibilidad a la hora de desarrollar una
+aplicación. Vamos a ilustrar con un ejemplo esta flexibilidad. Un caso que nos
+encontramos habitualmente es que la aplicación que estamos construyendo debe
+enviar e-mails. Es bastante molesto tener que disponer de cuentas reales y
+gestionarlas para que podamos probar la aplicación mientras desarrollamos. Podemos
+utilizar este sistema de configuración para indicar al framework que en el
+entorno de desarrollo se envíen todos los e-mails a una sola cuenta, o incluso
+que no se envíen. Otro ejemplo típico podría ser el definir unos parámetros de
+conexión a la base de datos para el entorno de producción y otro para el de
+desarrollo.
+
+Una estrategía muy adecuada para tratar con los ficheros de configuración cuando
+queremos que haya partes comunes y partes diferentes en cada entorno, es definir
+todos los parámetros comunes en el fichero <tt class="docutils literal"><span class="pre">fichconfig.yml</span></tt> (donde <tt class="docutils literal"><span class="pre">fichconfig</span></tt>
+es <tt class="docutils literal"><span class="pre">config</span></tt>, <tt class="docutils literal"><span class="pre">security</span></tt>, <tt class="docutils literal"><span class="pre">routing</span></tt> o <tt class="docutils literal"><span class="pre">services</span></tt>), y los particulares de
+cada entorno en el fichero <tt class="docutils literal"><span class="pre">fichconfig_env.yml</span></tt> (donde <tt class="docutils literal"><span class="pre">env</span></tt> es <tt class="docutils literal"><span class="pre">dev</span></tt>,
+<tt class="docutils literal"><span class="pre">prod</span></tt> o cualquier otro nombre de entorno que usemos). Por último importamos
+los primeros (comunes) desde los últimos (particulares) de la siguiente manera:
+
+Inicio del fichero <tt class="docutils literal"><span class="pre">fichconfig_env.yml</span></tt>
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">imports</span><span class="p-Indicator">:</span>
+ <span class="p-Indicator">-</span> <span class="p-Indicator">{</span> <span class="nv">resource</span><span class="p-Indicator">:</span> <span class="nv">fichconfig.yml</span> <span class="p-Indicator">}</span>
+ <span class="l-Scalar-Plain">...</span></pre>
+</div>
+</div>
+Puedes comprobar que esta es la estrategia utilizada por la distribución standard
+de <em>Symfony2</em> con los ficheros <tt class="docutils literal"><span class="pre">config.yml</span></tt>, <tt class="docutils literal"><span class="pre">config_dev.yml</span></tt> y
+<tt class="docutils literal"><span class="pre">config_prod.yml</span></tt>.
+
+Para acelerar la ejecución de los scripts, la configuración, el enrutamiento y las
+plantillas de twig son compiladas y almacenadas en el directorio <tt class="docutils literal"><span class="pre">cache</span></tt>. Por
+otro lado, los errores y otra información de interés acerca de eventos que ocurren
+cuando se ejecuta el framework, son registrados en archivos que se almacenan en el
+directorio <tt class="docutils literal"><span class="pre">logs</span></tt>. Por eso <strong>estos dos directorios deben tener permisos de
+escritura para el servidor web</strong>.
+
+Por último, en este directorio tan “denso”, encontramos la navaja suiza de
+<em>Symfony2</em>, la aplicación <tt class="docutils literal"><span class="pre">app/console</span></tt>. Prueba a ejecutarla sin pasarle
+ningún argumento. Verás una lista con todas las tareas que se pueden lanzar por
+línea de comandos.
+<div class="highlight-bash">
+<div class="highlight">
+<pre># php app/console</pre>
+</div>
+</div>
+</div>
+<div class="section" id="el-directorio-vendor">
+<h3>El directorio <tt class="docutils literal"><span class="pre">vendor</span></tt><a class="headerlink" title="Enlazar permanentemente con este título" href="#el-directorio-vendor">¶</a></h3>
+Aquí se aloja todo el código funcional que no es tuyo. Es lo que tradicionalmente
+se conoce como librerías de terceros. Entre otras cosas, el directorio contiene
+los componentes de <em>Symfony2</em>, el ORM <em>Doctrine2</em> y el sistema de plantillas
+<em>twig</em>. Cuando amplies tu aplicación con nuevos <em>bundles</em> de terceros instalados
+automáticamente con la aplicación <tt class="docutils literal"><span class="pre">bin/vendors</span></tt>, será aquí donde se ubique el
+código.
+
+</div>
+<div class="section" id="el-directorio-src">
+<h3>El directorio <tt class="docutils literal"><span class="pre">src</span></tt><a class="headerlink" title="Enlazar permanentemente con este título" href="#el-directorio-src">¶</a></h3>
+Es el directorio donde colocarás tu código. Más concretamente: tus <em>bundles</em>.
+A base de utilizar este palabro acabarás por asimilarlo antes de que te lo
+expliquemos :-).
+
+</div>
+<div class="section" id="el-directorio-bin">
+<h3>El directorio <tt class="docutils literal"><span class="pre">bin</span></tt><a class="headerlink" title="Enlazar permanentemente con este título" href="#el-directorio-bin">¶</a></h3>
+El nombre de este directorio es un clásico en el mundo <em>UNIX</em>. En él se colocan
+archivos ejecutables. La distribución standard solo trae el ejecutable <tt class="docutils literal"><span class="pre">vendors</span></tt>
+que se utiliza, en combinación con el fichero <tt class="docutils literal"><span class="pre">deps</span></tt> (dependencias), para
+instalar componentes de terceros (<em>vendors</em>).
+
+Y con esto acabamos la descripción de los directorios de <em>Symfony2</em>. Ha llegado
+el momento de hablar de los <em>bundles</em>, esos grandes desconocidos (¡por ahora!).
+
+</div>
+</div>
+<div class="section" id="los-bundles-plugins-de-primera-clase">
+<h2>Los Bundles: Plugins de primera clase<a class="headerlink" title="Enlazar permanentemente con este título" href="#los-bundles-plugins-de-primera-clase">¶</a></h2>
+Si los creadores de <em>Symfony2</em> hubieran elegido la palabra <em>plugin</em> en lugar de
+<em>bundle</em>, es probable que te hubieses hecho una idea más concreta de lo que es
+un <em>bundle</em>. Pues bien, por lo pronto, piensa que un <em>bundle</em> es un <em>plugin</em>, por
+que no es ni más ni menos que eso.
+
+Cualquier framework que se precie debe ofrecer un mecanismo de extensión que
+permita ampliar la aplicación sin compromenter la escalabilidad. Para ello las
+piezas que se añaden al sistema deben ser bloques prácticamente autónomos y con
+una interfaz sencilla para engancharlos (<em>to plug</em>, en inglés) al sistema. A estos
+bloques se les conoce a lo largo y ancho de la galaxia con el nombre de <em>plugin</em>
+(o complemento, en castellano). ¿Por qué los creadores de <em>Symfony2</em> han decidido
+llamarles <em>bundles</em> en su lugar? Lo mismo hay alguna razón teórica que se me
+escapa. Pero de lo que si estoy seguro es de que hay una razón histórica:
+
+El antecesor de <em>Symfony2</em>, el fantástico <em>symfony 1.x</em> organiza el código en
+<em>aplicaciones</em>, que a su vez están formadas por <em>módulos</em> con la implementación
+de las acciones. Además ofrece un mecanismo de extensión basado en <em>plugins</em>, los
+cuales también organizan el código en <em>módulos</em> con sus acciones. Pero a pesar
+de este paralelismo las aplicaciones son “más importantes” que los <em>plugins</em>. De
+hecho, las aplicaciones pueden usar módulos de los plugins, pero lo contrario no
+tiene sentido tal y como está concebido <em>symfony 1.x</em>. Con el tiempo los
+desarrolladores se dieron cuenta de que era más fácil de mantener y organizar los plugins, ya que son bloques de código autónomos y fácilmente acoplables a la
+aplicación. Este hecho llevó de forma natural a reorganizar la aplicación
+colocando todo el código funcional en los <em>plugins</em>. Las aplicaciones se quedaban
+prácticamente vacías de código y tan solo contenían ficheros de configuración.
+
+Así pues, en <em>Symfony2</em> decidieron olvidarse del concepto de aplicación (en el
+sentido de <em>symfony 1.x</em>), y obligar a que todo el código funcional se organizase
+en <em>plugins</em>. Es como hacer a los <em>plugins</em> ciudadanos de primera clase del
+framework. Finalmente, para evitar cualquier confusión y dirimir la diferencia
+entre <em>plugin</em> y aplicación, decidieron usar la palabra <em>bundle</em>. Y eso es todo.
+Si no conoces <em>symfony 1.x</em>, seguro que hubieras preferido llamarle <em>plugin</em>. Y si lo conoces
+es probable que también.
+
+En fin, lo que realmente debes saber:
+<div class="admonition important">
+<p class="first admonition-title">Importante</p>
+<p class="last">Un <em>bundle</em> no es más que un directorio que aloja todo aquello relativo a una
+funcionalidad determinada. Puede incluir clases <em>PHP</em>, plantillas,
+configuraciones, <em>CSS’s</em> y <em>Javascript</em>.</p>
+
+</div>
+</div>
+<div class="section" id="la-aplicacion-gestion-de-alimentos-en-symfony2">
+<h2>La aplicación <em>gestión de alimentos</em> en <em>Symfony2</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#la-aplicacion-gestion-de-alimentos-en-symfony2">¶</a></h2>
+Y llegó el momento de ponerse a cocinar código.
+<div class="section" id="generacion-de-un-bundle">
+<h3>Generación de un <em>Bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#generacion-de-un-bundle">¶</a></h3>
+La primera idea que debe quedar clara, expresada de manera simplista, es que
+<em>“todo es un bundle”</em> en <em>Symfony2</em>. Por tanto, si queremos desarrollar una
+aplicación necesitaremos, por lo menos, tener un <em>bundle</em> para alojar el código de
+la misma. Comencemos por ahí. El siguiente comando de <em>Symfony2</em> nos ayuda a
+generar el esqueleto de un bundle de manera interactiva:
+<div class="highlight-bash">
+<div class="highlight">
+<pre># php app/console generate:bundle</pre>
+</div>
+</div>
+A cada pregunta que nos hace le acompaña una pequeña ayuda. En primer lugar nos
+pregunta por el espacio de nombre que compartiran las clases del <em>bundle</em>. La
+recomendación, como se dice en el texto de ayuda del comando, es que comience por
+el nombre del fabricante del <em>bundle</em>, el nombre del proyecto o del cliente,
+seguido, opcionalemente, por una o más categorías, y finalizar con el nombre del
+<em>bundle</em> seguido del sufijo <em>Bundle</em>. Es decir el nombre completo del espacio
+de nombres del <em>bundle</em> debe seguir el siguiente patrón:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>Fabricante/categoria1/categoria2/../categoriaN/nombrebundleBundle</pre>
+</div>
+</div>
+Ilustremos esto con varios ejemplos de nombres de <em>bundles</em> válidos:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>AulasMentor/AlimentosBundle
+AulasMentor/Tutorial/AlimentosBundle
+AulasMentor/CursoSf2/Tutorial/AlimentosBundle
+Jazzyweb/AulasMentor/AlimentosBundle</pre>
+</div>
+</div>
+Nos quedaremos con el último de los nombres para el <em>bundle</em> que vamos a
+construir. Con este nombre se quiere expresar algo así como que el <em>bundle</em>
+<tt class="docutils literal"><span class="pre">AlimentosBundle</span></tt> ha sido creado por <tt class="docutils literal"><span class="pre">Jazzyweb</span></tt> (una empresa ficticia) para
+el cliente <tt class="docutils literal"><span class="pre">AulasMentor</span></tt>. Como ves, cualquier nombre vale siempre que contenga
+un nombre de fabricante (<em>vendor name</em>) y un nombre de <em>bundle</em>. En medio podemos
+poner lo que queramos para organizar nuestro trabajo.
+
+Introduce <tt class="docutils literal"><span class="pre">Jazzyweb/AulasMentor/AlimentosBundle</span></tt> como espacio de nombres del
+<em>bundle</em>. A continuación nos pregunta por el nombre del <em>bundle</em>. Y nos ofrece
+una recomendación que es el mismo nombre del espacio de nombres anterior pero sin
+los separadores <tt class="docutils literal"><span class="pre">/</span></tt>. El nombre del <em>bundle</em> es importante pues, en ocasiones,
+hay que referirse al <em>bundle</em> por este nombre.
+
+Presiona <tt class="docutils literal"><span class="pre">enter</span></tt> para aceptar la sugerencia.
+
+El próximo paso es asignarle una ubicación en la estructura de directorios del
+proyecto. La flexibilidad de <em>Symfony2</em> permite que lo coloques donde quieras.
+Pero es muy recomendable que lo coloques en el directorio <tt class="docutils literal"><span class="pre">src</span></tt>, ya que está
+pensado para alojar nuestro código. Si lo haces así, te ahorrarás tener que
+incluir una línea de código en el fichero <tt class="docutils literal"><span class="pre">app/autoload.php</span></tt> para registrar el
+espacio de nombre en el sistema de autocarga de clases. Esto último es así porque
+en dicho fichero ya se ha contemplado que todas las clases que se aloje en <tt class="docutils literal"><span class="pre">src</span></tt>
+sean autocargadas asignándole como espacio de nombre raíz el mismo nombre que
+la estructura de directorios computada desde <tt class="docutils literal"><span class="pre">src</span></tt>.
+
+Presiona <tt class="docutils literal"><span class="pre">enter</span></tt> para aceptar la sugerencia. Cuando termines de generar el
+<em>bundle</em> verás como se ha creado en <tt class="docutils literal"><span class="pre">src</span></tt> el directorio
+<tt class="docutils literal"><span class="pre">Jazzyweb/AulasMentor/AlimentosBundle</span></tt>, es decir un directorio que tiene la
+misma estructura que el espacio de nombres que hemos asignado al <em>bundle</em>. Esto
+es lo que se quiere decir de manera genérica en el párrafo anterior.
+
+Los <em>bundles</em> llevarán asociados algo de configuración. Como mínimo será necesario
+configurar las rutas que mapean las <em>URL’s</em> en acciones del <em>bundle</em>. <em>Symfony2</em>
+admite 4 formas de representar las configuraciones: con ficheros <em>XML</em>, <em>YML</em> o
+<em>PHP</em>, y mediante anotaciones, que es una manera de expresar parámetros de
+configuración en el propio código funcional aprovechando para ello los comentarios
+de <em>PHP</em>.
+
+Más adelante tendremos ocasión de utilizar las anotaciones y las entenderás mejor.
+Llegados a este punto hemos de decir que la elección es una cuestión de gusto;
+discutir con alguien acerca de cual es la mejor opción sería una pérdida de tiempo.
+Para el caso de la configuración de los <em>bundles</em> (prácticamente para definir
+rutas como veremos después) hemos elegido los fichero <em>YAML</em> como formato para
+la configuración.
+
+Selecciona (escribe) <tt class="docutils literal"><span class="pre">yml</span></tt> como formato de configuración.
+
+Por último contesta <tt class="docutils literal"><span class="pre">yes</span></tt> a la pregunta de si quieres generar la estructura
+completa. Esta opción generará algunos directorios y archivos extra que siguen
+las recomendaciones de <em>Symfony2</em> para alojar código. Es posible que no los
+utilices, pero no hacen “daño” y sugieren como debe organizarse el código. No
+obstante el programador tiene bastante libertad a la hora de organizar los
+archivos del <em>bundle</em> como quiera.
+
+Confirma la generación del código. Una vez generado, el asistente te realizará
+dos preguntas más. Primera pregunta: ¿quieres actualizar automáticamente el Kernel?
+y segunda pregunta ¿quieres actualizar directamente el <em>routing</em>? Contesta a las
+dos afirmativamente. Vamos a ver con más detalle las consecuencias de estas
+actualizaciones automáticas.
+
+Por una parte el <em>bundle</em>, como ya hemos explicado, es un bloque desacoplado y
+reutilizable de código que agrupa a una serie de funcionalidades. Si queremos
+utilizarlo en nuestro proyecto debemos “notificarlo” al framework. Es decir,
+hemos de “engancharlo”. Esto se hace registrándolo en el archivo
+<tt class="docutils literal"><span class="pre">app/AppKernel.php</span></tt>. La primera actualización automática ha realizado dicho
+registro. Abre ese archivo y fíjate como al final del método <tt class="docutils literal"><span class="pre">registerBundles()</span></tt>
+aparece la siguiente línea:
+<div class="highlight-php">
+<div class="highlight">
+<pre><span class="x">...</span>
+<span class="x">new Jazzyweb\AulasMentor\AlimentosBundle\JazzywebAulasMentorAlimentosBundle(),</span>
+<span class="x">...</span></pre>
+</div>
+</div>
+Dicha línea ha sido insertada automáticamente como consecuencia de haber respondido
+afirmativamente a la primera pregunta. El cometido de la línea es registrar el
+<em>bundle</em> recien creado en el framework para poder hacer uso del mismo.
+
+La segunda actualización automática “enlaza” la tabla enrutamiento general de
+la aplicación con la tabla de enrutamiento particular del <em>bundle</em>. La tabla de
+enrutamiento es la responsable de indicar al framework como deben mapearse las
+<em>URL’s</em> en acciones <em>PHP</em>. Para ver como se ha realizado este enlace mira el
+fichero <tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span>
+ <span class="l-Scalar-Plain">resource</span><span class="p-Indicator">:</span> <span class="s">"@JazzywebAulasMentorAlimentosBundle/Resources/config/routing.yml"</span>
+ <span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span>   <span class="l-Scalar-Plain">/</span></pre>
+</div>
+</div>
+Estas líneas han sido introducidas automáticamente como consecuencia de contestar
+afirmativamente a la segunda pregunta. Observa que el apartado <em>resource</em> es la
+dirección en el sistema de ficheros de la tabla de enrutamiento propia del <em>bundle</em>
+que acabamos de crear. <em>Symfony2</em> sabe convertir <tt class="docutils literal"><span class="pre">@JazzywebAulasMentorAlimentosBundle</span></tt>
+en la ubicación del <em>bundle</em> pues está debidamente registrado.
+
+Es importante que conozcas como se acopla un <em>bundle</em> a la aplicación, pues si
+falla la actualización automática del <tt class="docutils literal"><span class="pre">KernelApp.php</span></tt> y/o del <tt class="docutils literal"><span class="pre">routing.yml</span></tt>,
+debes realizarlas manualmente.
+
+Ahora puedes echarle un vistazo al fichero <tt class="docutils literal"><span class="pre">routing.yml</span></tt> del <em>bundle</em>
+(<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/config/routing.yml</span></tt>). Verás que
+existe una ruta mapeada contra una acción. Después explicaremos los detalles de la
+ruta. Esta última ruta sirve para probar el <em>bundle</em>. Así que accede desde tu
+navegador web a la siguiente <em>URL</em> (que es la que se corresponde con esta ruta de
+prueba)
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app_dev.php/hello/alberto</pre>
+</div>
+</div>
+Si todo va bien, obtendrás como respuesta un saludo. Puedes cambiar el nombre
+del final de la ruta.
+
+Resumiendo: Para desarrollar nuestra aplicación hemos de contar al menos con un
+<em>bundle</em> para escribir el código. Según la complejidad de la aplicación será
+más o menos adecuado organizar el código en varios <em>bundles</em>. El criterio a seguir
+es el de agrupar en cada <em>bundle</em> funcionalidades similares o del mismo tipo.
+Los bundles son bloques desacoplados y tienen asociado un espacio de nombre. Para
+acoplar un bundle al framework hay que :
+<ol class="arabic simple">
+	<li>Registrar el espacio de nombre en el sistema de autocarga (fichero
+<tt class="docutils literal"><span class="pre">app/autoload.php</span></tt>. Este paso no es necesario si ubicamos al <em>bundle</em> en el
+directorio <tt class="docutils literal"><span class="pre">src</span></tt>.</li>
+	<li>Registrar al bundle en el fichero <tt class="docutils literal"><span class="pre">app/AppKernel.php</span></tt>. Esta operación se
+puede hacer automáticamente a través del generador interactivo de <em>bundles</em>,
+pero si fallase por alguna razón (por ejemplo que los permisos de dicho archivo
+no estén bien definidos). Habría que hacerlo a mano.</li>
+	<li>Importar las tablas de enrutamiento del <em>bundle</em> en la tabla de enrutamiento
+de la aplicación.</li>
+</ol>
+</div>
+<div class="section" id="anatomia-de-un-bundle">
+<h3>Anatomía de un <em>Bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#anatomia-de-un-bundle">¶</a></h3>
+Si has seguido las indicaciones que hemos dado en este tutorial, debes tener en tu
+directorio <tt class="docutils literal"><span class="pre">src</span></tt> dos directorios: <tt class="docutils literal"><span class="pre">Jazzyweb</span></tt> y <tt class="docutils literal"><span class="pre">Acme</span></tt> . El primero se
+corresponde con el <em>bundle</em> que acabamos de crear, y el segundo es un ejemplo
+que viene de serie con la distribución standard de <em>Symfony2</em> y que contiene el
+código de la demo con la que has jugado hace un rato. Vamos a utilizar este
+último para realizar la <em>disección</em> de un <em>bundle</em>, ya que está más rellenito de
+código que nuestro recien horneado y esquelético <em>bundle</em>.
+<div class="highlight-bash">
+<div class="highlight">
+<pre>Acme/
+└── DemoBundle
+    ├── AcmeDemoBundle.php
+    ├── Controller
+    │   ├── DemoController.php
+    │   ├── SecuredController.php
+    │   └── WelcomeController.php
+    ├── ControllerListener.php
+    ├── DependencyInjection
+    │   └── AcmeDemoExtension.php
+    ├── Form
+    │   └── ContactType.php
+    ├── Resources
+    │   ├── config
+    │   │   └── services.xml
+    │   ├── public
+    │   │   ├── css
+    │   │   │   └── demo.css
+    │   │   └── images
+    │   │       ├── blue-arrow.png
+    │   │       ├── field-background.gif
+    │   │       ├── logo.gif
+    │   │       ├── search.png
+    │   │       ├── welcome-configure.gif
+    │   │       ├── welcome-demo.gif
+    │   │       └── welcome-quick-tour.gif
+    │   └── views
+    │       ├── Demo
+    │       │   ├── contact.html.twig
+    │       │   ├── hello.html.twig
+    │       │   └── index.html.twig
+    │       ├── layout.html.twig
+    │       ├── Secured
+    │       │   ├── helloadmin.html.twig
+    │       │   ├── hello.html.twig
+    │       │   ├── layout.html.twig
+    │       │   └── login.html.twig
+    │       └── Welcome
+    │           └── index.html.twig
+    ├── Tests
+    │   └── Controller
+    │       └── DemoControllerTest.php
+    └── Twig
+        └── Extension
+            └── DemoExtension.php</pre>
+</div>
+</div>
+<ul>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">AcmeDemoBundle.php</span></tt> es una clase que extiende a
+<tt class="docutils literal"><span class="pre">Symfony\Component\HttpKernel\Bundle\Bundle</span></tt> y que define al <em>bundle</em>.
+Se utiliza en el proceso de registro del mismo (recuerda, en el fichero
+<tt class="docutils literal"><span class="pre">app/AppKernel.php</span></tt>). Todos los <em>bundles</em> deben incorporar esta clase (bueno,
+el nombre cambiará según el nombre del <em>bundle</em>)</p>
+</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">Controller</span></tt> es el directorio donde se deben colocar los controladores con las
+distintas acciones del <em>bundle</em>. Las acciones son las funciones (o métodos) Lo lógico y recomendado, es crear una clase
+<tt class="docutils literal"><span class="pre">Controller</span></tt> por cada grupo de funcionalidades. Pero no es una exigencia, si
+quieres puedes colocar todas tus acciones en el mismo controlador. Cuando se
+genera un <em>bundle</em> se crea el controlador <em>DefaultController</em>.</p>
+</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">Dependency</span> <span class="pre">Injection</span></tt>. Una de las características más sobresaliente de
+<em>Symfony2</em> es el uso intensivo que hace de la <em>Inyección de Dependencias</em>, un
+potente patrón de diseño mediante el que se facilita la creación y configuración
+de objetos que prestan servicios en una aplicación gracias a la gestión
+automática de sus dependencias. Contribuye a crear un código más desacoplado y
+coherente. Presentaremos este concepto en un tutorial dedicado en exclusiva a
+la Inyección de Dependencias en <em>Symfony2</em>. Aunque no es un patrón complicado, es
+dificil de explicar con precisión y claridad.</p>
+<em>Symfony2</em> nos ofrece dos maneras de “cargar” la configuración de las
+dependencias y los servicios creados. Una más sencilla y directa, y otra más
+elaborada y apropiada para el caso en que nuestro <em>bundle</em> vaya a ser
+distribuido con la intención de que se utilice en otros proyectos <em>Symfony2</em>. En
+este directorio se ubican las clases relacionadas con este segundo método de
+gestionar las dependencias.</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">Resources</span></tt>, es decir, recursos. Entendemos por recursos: los ficheros de
+configuración del <em>bundle</em> (directorio <tt class="docutils literal"><span class="pre">config</span></tt>), los <em>assets</em> que requiere
+el <em>bundle</em> para enviar en sus respuestas (directorio <tt class="docutils literal"><span class="pre">public</span></tt>) y las
+plantillas con las que se <em>renderizan</em> (pintan) el resultado de las acciones de
+los controladores (directorio <tt class="docutils literal"><span class="pre">view</span></tt>). Fíjate como en este <em>bundle</em>,
+las plantillas están organizadas en tres directorios (<tt class="docutils literal"><span class="pre">Demo</span></tt>, <tt class="docutils literal"><span class="pre">Secured</span></tt> y
+<tt class="docutils literal"><span class="pre">Welcome</span></tt>) cuyos nombres coinciden con los de los controladores.</p>
+</li>
+	<li>
+<p class="first"><tt class="docutils literal"><span class="pre">Test</span></tt>, es el directorio donde viven las pruebas unitarias y funcionales del
+<em>bundle</em>.</p>
+</li>
+</ul>
+Estos son los directorios más típicos de cualquier <em>bundle</em>, de hecho son los que
+se generan automáticamente con el comando <tt class="docutils literal"><span class="pre">app/console</span> <span class="pre">generate:bundle</span></tt>. Sin
+embargo un <em>bundle</em> puede tener muchos más directorios y ficheros, organizados
+como su creador crea conveniente. En el caso del <em>bundle</em> <tt class="docutils literal"><span class="pre">AcmeDemoBundle</span></tt>,
+puedes ver los siguientes “extras”:
+<ul class="simple">
+	<li><tt class="docutils literal"><span class="pre">Form</span></tt> es el directorio donde se colocarán las clases que definen los
+formularios de la aplicación.</li>
+	<li><tt class="docutils literal"><span class="pre">ControllerListener.php</span></tt> describe un <em>event listener</em> que es un mecanismo muy
+adecuado de extender y alterar el flujo del framework sin tener que tocar el
+código original del componente del framework que utiliza dicho sistema. Se trata
+de una característica avanzada de <em>Symfony2</em> raramente utilizada cuando uno se
+esta iniciando.</li>
+	<li><tt class="docutils literal"><span class="pre">Twig</span></tt> es un directorio propio de este <em>bundle</em>, en el que se ha implementado
+una extensión del sistema de plantillas.</li>
+</ul>
+Ahora ya nos encontramos con un mínimo bagaje para emprender el desarrollo del
+<em>bundle</em> <tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle</span></tt> y, por tanto de la aplicación.
+
+</div>
+<div class="section" id="flujo-basico-de-creacion-de-paginas-en-symfony2">
+<h3>Flujo básico de creación de páginas en <em>Symfony2</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#flujo-basico-de-creacion-de-paginas-en-symfony2">¶</a></h3>
+La creación de páginas web con <em>Symfony2</em> involucra tres pasos:
+<ol class="arabic simple">
+	<li>Creación de la ruta que mapea la <em>URL</em> de la página en una acción de algún
+controlador. Dicha ruta se registra en el archivo
+<tt class="docutils literal"><span class="pre">Resources/config/routing.yml</span></tt> del <em>bundle</em>, que a su vez debe estar
+correctamente importado en el archivo de rutas general de la aplicación
+<tt class="docutils literal"><span class="pre">app/config/routing</span></tt>.</li>
+	<li>Creación de dicha acción en el controlador correspondiente. La acción, haciendo
+uso del modelo, realizará las operaciones necesarias y obtendrá los datos crudos
+(raw), es decir sin ningún tipo de formato, que facilitará a una plantilla para
+ser pintados (renderizados). El código de los controladores debe ubicarse en
+el directorio <tt class="docutils literal"><span class="pre">Controllers</span></tt> del <em>bundle</em>.</li>
+	<li>Creación de dicha plantilla. Esto se hace en el directorio <tt class="docutils literal"><span class="pre">Resources/view</span></tt>.
+Con el fin de organizar bien las plantillas, es recomendable crear un
+directorio con el nombre de cada controlador. También es muy recomendable
+utilizar <em>Twig</em> como sistema de plantillas, aunque también se puede utilizar
+<em>PHP</em>.</li>
+</ol>
+Estos pasos son, por supuesto, una guía general y mínima que debemos seguir en
+la creación de las páginas de nuestra aplicación. No obstante, en muchos casos
+tendremos que realizar otras operaciones que se salen de este flujo y que tienen
+que ver más con la construcción del modelo de la aplicación.
+
+</div>
+<div class="section" id="definicion-de-las-rutas-del-bundle">
+<h3>Definición de las rutas del <em>bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#definicion-de-las-rutas-del-bundle">¶</a></h3>
+Ya hemos visto que en <em>Symfony2</em> todas las peticiones a la aplicación se realizan a
+través de un script <em>PHP</em> que se llama controlador frontal (<tt class="docutils literal"><span class="pre">app.php</span></tt>).
+Este script “sabe” lo que debe devolver como respuesta al usuario “mirando” la <em>ruta</em>
+que lo acompaña en cada petición.
+
+Cada ruta en <em>Symfony2</em> consiste en un conjunto de parámetros separados por el
+caracter <tt class="docutils literal"><span class="pre">/</span></tt>. Ejemplos de <em>URL’s</em> con rutas de <em>Symfony2</em> serían:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://tu.servidor/app.php
+http://tu.servidor/app.php/listar
+http://tu.servidor/app.php/ver/4</pre>
+</div>
+</div>
+Las rutas correspondientes serían:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>/
+/listar
+/ver/4</pre>
+</div>
+</div>
+Es decir, los parámetros que siguen al controlador frontal. Esta forma de pasar
+parámetros a través de la <em>URL</em> mejora en varios aspectos a la clásica <em>query string</em>
+del tipo:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>?param1<span class="o">=</span>val1&amp;param2<span class="o">=</span>val2&amp;...&amp;paramN<span class="o">=</span>valN</pre>
+</div>
+</div>
+En primer lugar el usuario que utiliza el navegador “siente” que la <em>URL</em> que aparece
+en la barra de direcciones forma parte de la aplicación que está utilizando. Por tanto,
+cualquier <em>URL</em> llena de carácteres extraños y demasiado larga redunda en una
+degradación estética. En segundo lugar y más allá de cuestiones estéticas, cuando utilizamos query strings clásicas estamos dando información innecesaria al usuario, ya que
+el nombre de los parámetros (<tt class="docutils literal"><span class="pre">paramX</span></tt>) es algo que tiene sentido únicamente para la
+aplicación en el servidor. Esta información extra, además de dar lugar a <em>URL’s</em>
+horribles, supone un problema de seguridad, ya que el usuario podría utilizarlas para
+sacar conclusiones acerca de la aplicación y utilizarla para comprometerla.
+
+El aspecto de las <em>URL’s</em> puede mejorar aún más si utilizamos el módulo <tt class="docutils literal"><span class="pre">Rewrite</span></tt>
+del servidor web, ya que también podemos eliminar el nombre del controlador frontal
+(<tt class="docutils literal"><span class="pre">app.php</span></tt>). Así además de mejorar el estilo de la <em>URL</em>, ocultamos al usuario
+información acerca del lenguaje de programación que estamos utilizando en el servidor.
+
+Nos quedarían <em>URL’s</em> de este tipo:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://tu.servidor/
+http://tu.servidor/listar
+http://tu.servidor/ver/4</pre>
+</div>
+</div>
+¡Mucho más legibles y elegantes!
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+En el directorio <tt class="docutils literal"><span class="pre">web</span></tt> existe un fichero <tt class="docutils literal"><span class="pre">.htaccess</span></tt> con el siguiente contenido:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>&lt;IfModule mod_rewrite.c&gt;
+  RewriteEngine On
+  RewriteCond %<span class="o">{</span>REQUEST_FILENAME<span class="o">}</span> !-f
+  RewriteRule ^<span class="o">(</span>.*<span class="o">)</span><span class="nv">$ </span>app.php <span class="o">[</span>QSA,L<span class="o">]</span>
+&lt;/IfModule&gt;</pre>
+</div>
+</div>
+<p class="last">La función de dicho fichero es, precisamente, reescribir las rutas anteponiendo
+<tt class="docutils literal"><span class="pre">app.php</span></tt>, de manera que no sea necesario especificar el controlador frontal
+en la <em>URL</em>. Para que esto funcione es necesario que el servidor web tenga
+instalado el módulo <tt class="docutils literal"><span class="pre">Rewrite</span></tt>, y permita el cambio de directivas a través
+de ficheros <tt class="docutils literal"><span class="pre">.htaccess</span></tt>.</p>
+
+</div>
+La siguiente tabla muestra las rutas que definiremos en nuestra aplicación y la
+acción que deben disparar.
+<table class="docutils" border="1"><colgroup> <col width="30%" /> <col width="70%" /> </colgroup>
+<thead valign="bottom">
+<tr>
+<th class="head">URL</th>
+<th class="head">Acción</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td>/</td>
+<td>mostrar pantalla inicio</td>
+</tr>
+<tr>
+<td>/listar</td>
+<td>listar alimentos</td>
+</tr>
+<tr>
+<td>/insertar</td>
+<td>insertar un alimento</td>
+</tr>
+<tr>
+<td>/buscar</td>
+<td>buscar alimentos</td>
+</tr>
+<tr>
+<td>/ver/x</td>
+<td>ver el alimento <em>x</em></td>
+</tr>
+</tbody>
+</table>
+En <em>Symfony2</em> las rutas se definen en el archivo <tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>. Para
+que los <em>bundles</em> no pierdan la autonomía que debe caracterizarlos, las rutas que
+se mapean en un controlador de un determinado <em>bundle</em> deberían definirse dentro
+del propio <em>bundle</em>. Concretamente en el archivo <tt class="docutils literal"><span class="pre">Resources/config/routing.yml</span></tt>
+del <em>bundle</em>. Y para hacerlas disponibles a la aplicación, se importa este último
+fichero en <tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Aunque el sitio recomendado para ubicar el fichero <tt class="docutils literal"><span class="pre">routing.yml</span></tt> de un
+<em>bundle</em> es <tt class="docutils literal"><span class="pre">Resources/config</span></tt>, <em>Symfony2</em> no lo exige, ya que en el archivo
+<tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>, que es el que realmente define las rutas, puedes
+indicar la ruta concreta de los archivos que se quieren importar.</p>
+
+</div>
+Abre el archivo <tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBunle/Resources/config/routing.yml</span></tt>
+y borra las siguientes líneas:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JazzywebAulasMentorAlimentosBundle_homepage</span><span class="p-Indicator">:</span>
+ <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/hello/{name}</span>
+ <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">index</span> <span class="p-Indicator">}</span></pre>
+</div>
+</div>
+Las líneas que acabas de borrar definían la ruta de la acción de ejemplo que se
+crea automáticamente al generar el bundle. Fíjate en la estructura de la definición
+de una ruta; consisten en un identificador de la ruta
+(<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle_homepage</span></tt>),
+que puede ser cualquiera siempre que sea único en todo el framework, el patrón
+de la ruta (<tt class="docutils literal"><span class="pre">pattern:</span> <span class="pre">/hello/{name}</span></tt>), que describe la estructura de la ruta, y
+la declaración del controlador sobre el que se mapea la ruta
+(<tt class="docutils literal"><span class="pre">defaults:</span> <span class="pre">{</span> <span class="pre">_controller:</span> <span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index</span> <span class="pre">}</span></tt>).
+
+Creamos nuestra primera ruta añadiendo al archivo anterior lo siguiente:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JAMAB_homepage</span><span class="p-Indicator">:</span>
+ <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/</span>
+ <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">index</span> <span class="p-Indicator">}</span></pre>
+</div>
+</div>
+Como el nombre de la ruta debe ser único en toda la aplicación, es una buena
+práctica nombrarlas anteponiendo un prefijo con el nombre del <em>bundle</em>, o con algo
+que lo identifique. Como el nombre de nuestro <em>bundle</em> es muy largo, hemos optado
+por usar como prefijo las siglas <tt class="docutils literal"><span class="pre">JAMAB</span></tt>.
+
+Una vez definida la ruta debemos implementar la acción del controlador especificada
+en la misma, es decir <tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index</span></tt>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Fíjate en el patrón que se utiliza para especificar la acción del controlador:
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index</span></tt>. A esto se le llama en
+<em>Symfony2</em> un nombre lógico. Está compuesto por el nombre del <em>bundle</em>, el
+nombre del controlador, y el nombre de la acción separados por el caracter
+<tt class="docutils literal"><span class="pre">:</span></tt>. En este caso, el nombre lógico hace referencia a el método
+<tt class="docutils literal"><span class="pre">indexAction()</span></tt> de una clase <em>PHP</em> llamada
+<tt class="docutils literal"><span class="pre">Jazzyweb\AulasMentor\AlimentosBundle\Controller\DefaultController</span></tt>.
+Es decir, hay que añadir el sufijo <tt class="docutils literal"><span class="pre">Controller</span></tt> al nombre del controlador, y
+el sufijo <tt class="docutils literal"><span class="pre">Action</span></tt> al nombre de la acción.</p>
+
+</div>
+</div>
+<div class="section" id="creacion-de-la-accion-en-el-controlador">
+<h3>Creación de la acción en el controlador<a class="headerlink" title="Enlazar permanentemente con este título" href="#creacion-de-la-accion-en-el-controlador">¶</a></h3>
+Editamos el fichero <tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Controller/DefaultController.php</span></tt>,
+y reescribimos el método <tt class="docutils literal"><span class="pre">indexAction()</span></tt>:
+<div class="highlight-php">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">&lt;?php</span>
+
+ <span class="k">namespace</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Controller</span><span class="p">;</span>
+
+ <span class="k">use</span> <span class="nx">Symfony\Bundle\FrameworkBundle\Controller\Controller</span><span class="p">;</span>
+
+ <span class="k">class</span> <span class="nc">DefaultController</span> <span class="k">extends</span> <span class="nx">Controller</span>
+ <span class="p">{</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">indexAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+             <span class="s1">'mensaje'</span> <span class="o">=&gt;</span> <span class="s1">'Bienvenido al curso de Symfony2'</span><span class="p">,</span>
+             <span class="s1">'fecha'</span> <span class="o">=&gt;</span> <span class="nb">date</span><span class="p">(</span><span class="s1">'d-m-yy'</span><span class="p">),</span>
+         <span class="p">);</span>
+
+         <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:index.html.twig'</span><span class="p">,</span>
+         <span class="nv">$params</span><span class="p">);</span>
+     <span class="p">}</span>
+ <span class="p">}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Analicemos el código anterior. La clase <tt class="docutils literal"><span class="pre">DefaultController</span></tt> “vive” en el
+espacio de nombres <tt class="docutils literal"><span class="pre">Jazzyweb\AulasMentor\AlimentosBundle\Controller</span></tt>, por lo
+que su nombre completo es
+<tt class="docutils literal"><span class="pre">Jazzyweb\AulasMentor\AlimentosBundle\Controller\DefaultController</span></tt>. La clase
+extiende de <tt class="docutils literal"><span class="pre">Symfony\Bundle\FrameworkBundle\Controller\Controller</span></tt>, la cual
+forma parte de <em>Symfony2</em> y, aunque no es necesario que nuestros controladores
+deriven de dicha clase, si lo hacemos nos facilitará mucho la vida, ya que esta
+clase base cuenta con potentes herramientas para trabajar con <em>Symfony2</em>.
+Posiblemente la más útil sea el <em>Contenedor de Dependencias</em> tambien
+conocido como <em>Contenedor de Servicios</em>, con el que podemos obtener fácilmente
+instancias bien configuradas de cualquier servicio del framework, tanto de los
+incluidos en la distribución estándard, como de los que nosotros creemos o de
+los que se añadan en las extensiones de terceros (<em>vendors</em>) que podamos
+instalar. Quédate tranquilo con esto de los servicios pues será un tema que
+abordaremos más adelante. Por lo pronto es suficiente con que sepas que los servicios
+son objetos ofrecidos por el framework para realizar determinadas tareas (como
+por ejemplo enviar emails o manipular una base de datos).
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last"><strong>Sobre los espacios de nombre de PHP 5.3</strong>
+Si en la línea 7 se utiliza únicamente el nombre <tt class="docutils literal"><span class="pre">Controller</span></tt> en lugar del
+nombre completo <tt class="docutils literal"><span class="pre">Symfony\Bundle\FrameworkBundle\Controller\Controller</span></tt>,
+es por que previamente, en la línea 5, se ha indicado en el archivo que se
+va a utilizar la clase <tt class="docutils literal"><span class="pre">Controller</span></tt> de dicho espacio de nombre.</p>
+
+</div>
+El método <tt class="docutils literal"><span class="pre">indexAction()</span></tt> es una <em>acción</em> , es decir, un método que está mapeado
+en una <em>URL</em> a través de una ruta. Dichas rutas se definen en un fichero, que
+utilizarás intensivamente cuando desarrollas aplicaciones con <em>Symfony2</em>, denominado
+<tt class="docutils literal"><span class="pre">routing.yml</span></tt>. La acción <tt class="docutils literal"><span class="pre">indexAction()</span></tt> define un array asociativo con los
+datos “crudos” (raw) <tt class="docutils literal"><span class="pre">mensaje</span></tt> y <tt class="docutils literal"><span class="pre">fecha</span></tt>, y se los pasa a una plantilla para
+que los pinte. Esto último se hace en la línea 17 utilizando el método
+<tt class="docutils literal"><span class="pre">render</span></tt> de la clase padre
+<tt class="docutils literal"><span class="pre">Symfony\Bundle\FrameworkBundle\Controller\Controller</span></tt>. Este método recibe dos
+argumentos, el primero es el nombre lógico de la plantilla que se desea
+utilizar, y el segundo es un array asociativo con los datos.
+Las acciones terminan con la devolución de un objeto <tt class="docutils literal"><span class="pre">Response</span></tt>. Precisamente,
+el método <tt class="docutils literal"><span class="pre">render</span></tt> convierte una plantilla en un objeto de este tipo.
+
+El método <tt class="docutils literal"><span class="pre">render</span></tt> es uno de los servicios disponibles en el framework y
+accesible desde cualquier clase que derive de
+<tt class="docutils literal"><span class="pre">Symfony\Bundle\FrameworkBundle\Controller\Controller</span></tt>. Es un servicio que
+usaremos hasta la saciedad. El nombre lógico de una plantilla, es similar al
+nombre lógico de un controlador; está compuesto por el nombre del bundle, el
+nombre del directorio que aloja a la plantilla en el directorio
+<tt class="docutils literal"><span class="pre">Resources/view</span></tt> (que suele coincidir con el nombre del controlador, en este
+caso <tt class="docutils literal"><span class="pre">Default</span></tt>), y el nombre del archivo que implementa la plantilla (en este
+caso <tt class="docutils literal"><span class="pre">index.html.twig</span></tt>). Es decir que el nombre lógico:
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index.html.twig</span></tt>, hace referencia
+al archivo
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/index.html.twig</span></tt>.
+
+</div>
+<div class="section" id="creacion-de-la-plantilla">
+<h3>Creación de la plantilla<a class="headerlink" title="Enlazar permanentemente con este título" href="#creacion-de-la-plantilla">¶</a></h3>
+Siguiendo los pasos para la creación de una página en <em>Symfony2</em>, lo siguiente
+que tenemos que hacer es crear la plantilla. Edita el fichero
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/index.html.twig</span></tt> con el siguiente contenido:
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="nt">&lt;h1&gt;</span>Inicio<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;h3&gt;</span> Fecha: <span class="cp">{{</span><span class="nv">fecha</span><span class="cp">}}</span>  <span class="nt">&lt;/h3&gt;</span>
+<span class="cp">{{</span><span class="nv">mensaje</span><span class="cp">}}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Aunque <em>Symfony2</em> permite el uso de <em>PHP</em> como sistema de plantillas, en este
+tutorial utilizaremos <em>Twig</em>, que es lo recomendado oficialmente. El código
+anterior es una plantilla <em>twig</em>.
+
+En <em>twig</em>, el contenido dinámico, es decir, los datos “crudos” que le son
+pasados desde el controlador (segundo argumento del método <tt class="docutils literal"><span class="pre">render</span></tt> en la
+acción <tt class="docutils literal"><span class="pre">indexAction()</span></tt>), se referencian con dobles llaves (<tt class="docutils literal"><span class="pre">{{</span> <span class="pre">dato</span> <span class="pre">}}</span></tt>).
+En el ejemplo anterior <tt class="docutils literal"><span class="pre">{{</span> <span class="pre">fecha</span> <span class="pre">}}</span></tt> hace referencia al elemento <tt class="docutils literal"><span class="pre">fecha</span></tt> del
+array construido en el controlador, y <tt class="docutils literal"><span class="pre">{{</span> <span class="pre">mensaje</span> <span class="pre">}}</span></tt>, como ya has deducido,
+al elemento <tt class="docutils literal"><span class="pre">mensaje</span></tt> de dicho array.
+
+Pues con esto hemos terminado. Vamos a probar lo que acabamos de hacer.
+Introduce en la barra de direcciones de tu navegador la <em>URL</em> correspondiente a
+la ruta que acabamos de crear. Utiliza el controlador de desarrollo:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app_dev.php/</pre>
+</div>
+</div>
+¡Vaya! parece que nada de lo que hemos hecho ha funcionado. Vuelve a aparecer la
+aplicación demo de <em>Symfony2</em>.
+
+Ahora prueba con el controlador de producción:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app.php/</pre>
+</div>
+</div>
+¡Ahora si! Vemos la pantalla de inicio de nuestro <em>bundle</em>. Pero entonces, ¿qué
+está pansando? las rutas tienen distinto sentido según el controlador frontal
+que usemos. ¿Por qué?. La respuesta a este comportamiento se encuentra en las
+distintas configuraciones que se cargan en función del entorno de ejecución.
+Cuando utilizamos el controlador frontal de desarrollo <tt class="docutils literal"><span class="pre">app_dev.php</span></tt>, se carga
+el fichero de routing <tt class="docutils literal"><span class="pre">app/config/routing_dev.yml</span></tt>. Si le echas un vistazo al
+fichero verás que comienza con la siguiente ruta:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">_welcome</span><span class="p-Indicator">:</span>
+    <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/</span>
+    <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">AcmeDemoBundle</span><span class="p-Indicator">:</span><span class="nv">Welcome</span><span class="p-Indicator">:</span><span class="nv">index</span> <span class="p-Indicator">}</span></pre>
+</div>
+</div>
+La cual colisiona con la que nosotros hemos creado, ya que el patrón de la ruta
+es el mismo: <tt class="docutils literal"><span class="pre">/</span></tt>. El sistema de enrutamiento de <em>Symfony2</em> va leyendo todas
+las rutas y cuando encuentra una que coincide con la <em>URL</em> que se ha pedido,
+ejecuta la acción asociada. No sigue leyendo más rutas. Por eso, si en un mismo
+proyecto hay dos rutas, o más precisamente, dos patrones de rutas que coincidan,
+se ejecutará la primera que se encuentre. Atención por que no se producirá ningún
+error. Esto hay que tenerlo muy en cuenta cuando se desarrolla con <em>Symfony2</em>
+para evitarnos algún que otro dolor de cabeza.
+
+En el caso del controlador frontal de producción, el framework lee el fichero
+<tt class="docutils literal"><span class="pre">routing.yml</span></tt>, ya que no existe <tt class="docutils literal"><span class="pre">routing_prod.yml</span></tt>. Mira el fichero y podrás
+comprobar que no hay ninguna ruta que colisione con la que nosotros hemos
+definido. Por tanto todo está bien y se ejecuta la acción correcta.
+
+Una vez que sabemos las causas del problema, si queremos que el controlador de
+desarrollo cargue la ruta de nuestro <em>bundle</em>, cualquier solución que propongamos
+pasa por evitar la colisión entre rutas. Y para ello podemos hacer varias cosas:
+<ol class="arabic simple">
+	<li>Deshabilitar el plugin <em>AcmeDemoBundle</em> y sus rutas.</li>
+	<li>Cambiar el patrón de las rutas del plugin <em>AcmeDemoBundle</em>, anteponiendole
+a todas ellas un prefijo (<tt class="docutils literal"><span class="pre">acme</span></tt>, por ejemplo)</li>
+	<li>Cambiar el patrón de las rutas del <em>Jazzyweb/AulasMentorAlimentosBundle</em>, anteponiendole a todas ellas un prefijo (<tt class="docutils literal"><span class="pre">alimentos</span></tt>, por ejemplo)</li>
+</ol>
+Con el fin de ilustrar una carácteristica del sistema de routing, hemos optado
+por la 3ª solución. Podemos añadir un prefijo a todas las rutas del <em>bundle</em> sin
+más que cambiar el parámetro <tt class="docutils literal"><span class="pre">prefix</span></tt> en la ruta importada en el archivo
+<tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">resource</span><span class="p-Indicator">:</span> <span class="s">"@JazzywebAulasMentorAlimentosBundle/Resources/config/routing.yml"</span>
+  <span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span>   <span class="l-Scalar-Plain">/alimentos</span></pre>
+</div>
+</div>
+Ahora, para ver la página de inicio de nuestro <em>bundle</em>, apuntamos nuestro
+navegador a:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/app_dev.php/alimentos/</pre>
+</div>
+</div>
+Y ya está! A partir de ahora todas las rutas de nuestro <em>bundle</em> llevarán el
+prefijo <tt class="docutils literal"><span class="pre">alimentos</span></tt> delante.
+<div class="admonition attention">
+<p class="first admonition-title">Atención</p>
+Como hemos cambiado un fichero de configuración, para que el cambio se haga
+efectivo en el entorno de producción hay que borrar la caché con el siguiente
+comando:
+<div class="last highlight-bash">
+<div class="highlight">
+<pre><span class="c"># php app/console cache:clear --env=prod</span></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="decoracion-de-la-plantilla-con-un-layout">
+<h3>Decoración de la plantilla con un layout<a class="headerlink" title="Enlazar permanentemente con este título" href="#decoracion-de-la-plantilla-con-un-layout">¶</a></h3>
+Te habrás dado cuenta que hemos pintado un bloque <em>HTML</em> incompleto. Si no te
+has percatado de ello mira el código fuente <em>HTML</em> que llega al navegador.
+Nos falta someter a la plantilla al proceso de decoración, mediante el cual se le
+añade funcionalidad. En el caso de la aplicación de <em>gestión de alimentos</em> hay que
+añadir la cabecera con el menú, el pie de página y los estilos.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+Sobre el proceso de decoración:
+<p class="last">En una aplicación web, muchas de las páginas tienen elementos comunes. Por
+ejemplo, un caso típico es la cabecera (donde se coloca el mensaje de bienvenida),
+el menú y el pie de página. Este hecho, y la aplicación del conocido principio de
+buenas prácticas de programación <em>DRY</em> (<em>Don’t Repeat Yourself</em>, No Te Repitas),
+lleva a que cualquier sistema de plantillas que se utilice para implementar la
+vista utilice un conocido patrón de diseño: El <em>Decorator</em>, o Decorador.
+Aplicado a la generación de vistas la solución que ofrece dicho patrón es la de
+añadir funcionalidad adicional a las plantillas. Por ejemplo, añadir el menú y el
+pie de página a las plantillas que lo requieran, de manera que dichos elementos
+puedan reutilizarse en distintas plantillas. Literalmente se trata de <em>decorar</em>
+las plantillas con elementos adicionales reutilizables.</p>
+
+</div>
+El sistema de plantillas <em>twig</em>, está provisto de un mecanismo de herencia gracias
+al cual la decoración de plantillas resulta de una flexibilidad y versatilidad
+total. Podemos hacer cualquier cosa que nos imaginemos, como por ejemplo
+fragmentar la vista en distintas plantillas organizadas por criterios funcionales,
+y combinarlas para producir la vista completa. Podemos colocar en una un menú, en
+otra un pie de página, en otra la estructura básica del documento <em>HTML</em>, otra
+puede pintar un listado de <em>twits</em>, etcétera.
+
+La herencia es un mecanismo típico de la programación orientada a objetos mediante
+el que un componente software hereda todas las funcionalidades de otro y puede
+extenderlas y/o cambiarlas. Es exactamente esto lo que ocurre cuando una plantilla
+<em>twig</em> hereda de otra.
+
+En <em>twig</em> la herencia se implementa mediante el concepto de bloque. En las plantillas
+podemos delimitar <em>bloques</em> que comienzan con un <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">nombre_bloque</span> <span class="pre">%}</span></tt> y
+finalizan con <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">endblock</span> <span class="pre">%}</span></tt>. Las plantillas heredan todas las funcionalidades
+de las plantillas que extienden y pueden cambiar el código de los bloques
+heredadados. Como siempre un ejemplo vale más que mil palabras.
+
+Fíjate en el fichero <tt class="docutils literal"><span class="pre">app/Resources/view/base.html.twig</span></tt> que viene de serie
+en la distribución standard de <em>Symfony2</em>:
+
+<tt class="docutils literal"><span class="pre">app/Resources/view/base.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+      <span class="nt">&lt;head&gt;</span>
+         <span class="nt">&lt;meta</span> <span class="na">http-equiv=</span><span class="s">"Content-Type"</span> <span class="na">content=</span><span class="s">"text/html; charset=utf-8"</span> <span class="nt">/&gt;</span>
+         <span class="nt">&lt;title&gt;</span><span class="cp">{%</span> <span class="k">block</span> <span class="nv">title</span> <span class="cp">%}</span>Welcome!<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span><span class="nt">&lt;/title&gt;</span>
+             <span class="cp">{%</span> <span class="k">block</span> <span class="nv">stylesheets</span> <span class="cp">%}{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+         <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"shortcut icon"</span> <span class="na">href=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">asset</span><span class="o">(</span><span class="s1">'favicon.ico'</span><span class="o">)</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;/head&gt;</span>
+      <span class="nt">&lt;body&gt;</span>
+         <span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+         <span class="cp">{%</span> <span class="k">block</span> <span class="nv">javascripts</span> <span class="cp">%}{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+      <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Representa la estructura básica de un documento <em>HTML</em>. Y presenta varios
+bloques: <tt class="docutils literal"><span class="pre">title</span></tt>, <tt class="docutils literal"><span class="pre">stylesheets</span></tt>, <tt class="docutils literal"><span class="pre">body</span></tt> y <tt class="docutils literal"><span class="pre">javascripts</span></tt>. Esta plantilla
+es ofrecida por <em>Symfony2</em> para que sirva de ejemplo. Pero puede utilizarse
+como plantilla básica de casi cualquier aplicación web.
+
+Vamos a modificar nuestra plantilla <tt class="docutils literal"><span class="pre">index.html.twig</span></tt> para que la herede (o para
+que la extienda, son dos maneras de decir lo mismo):
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/index.twig.html</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'::base.html.twig'</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+
+     <span class="nt">&lt;h1&gt;</span>Inicio<span class="nt">&lt;/h1&gt;</span>
+     <span class="nt">&lt;h3&gt;</span> Fecha: <span class="cp">{{</span><span class="nv">fecha</span><span class="cp">}}</span>  <span class="nt">&lt;/h3&gt;</span>
+     <span class="cp">{{</span><span class="nv">mensaje</span><span class="cp">}}</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+En la línea 1 se indica la herencia de la plantilla base. Esto significa que la
+plantilla <tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index.twig.html</span></tt> asume
+todo el contenido de la plantilla <tt class="docutils literal"><span class="pre">::base.html.twig</span></tt>. Pero además se modifica el
+contenido del bloque <tt class="docutils literal"><span class="pre">body</span></tt> con las líneas 5-7.
+
+Si además queremos modificar el bloque <tt class="docutils literal"><span class="pre">title</span></tt>, no tenemos más que añadirlo
+en nuestra plantilla <tt class="docutils literal"><span class="pre">index.html.twig</span></tt>:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/index.twig.html</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'::base.html.twig'</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span>  <span class="k">block</span> <span class="nv">title</span> <span class="cp">%}</span>
+  Bienvenido a la aplicación alimentos
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+
+     <span class="nt">&lt;h1&gt;</span>Inicio<span class="nt">&lt;/h1&gt;</span>
+     <span class="nt">&lt;h3&gt;</span> Fecha: <span class="cp">{{</span><span class="nv">fecha</span><span class="cp">}}</span>  <span class="nt">&lt;/h3&gt;</span>
+     <span class="cp">{{</span><span class="nv">mensaje</span><span class="cp">}}</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Ahora, en la sección <tt class="docutils literal"><span class="pre">&lt;title&gt;</span></tt> del documento se pintará: <tt class="docutils literal"><span class="pre">Bienvenido</span> <span class="pre">a</span> <span class="pre">la</span>
+<span class="pre">aplicación</span> <span class="pre">alimentos</span></tt> en lugar de <tt class="docutils literal"><span class="pre">Welcome</span></tt>.
+
+Puedes probar a recargar la página a través de la <em>URL</em>:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app_dev.php/alimentos/</pre>
+</div>
+</div>
+Aunque el aspecto de la página es el mismo que antes, si ves el código fuente
+<em>HTML</em> en el navegador, comprobarás que el documento está completo, es decir,
+con todas sus etiquetas <em>HTML</em>. También puedes comprobar que, al utilizar el
+controlador frontal de desarrollo, aparece en la parte de abajo de la página la
+barra de depuración de <em>Symfony2</em>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Recuerda el concepto de nombre lógico de una plantilla. Y fíjate en el nombre
+lógico de la plantilla <tt class="docutils literal"><span class="pre">::base.html.twig</span></tt>. Como no pertenece a ningún
+<em>bundle</em> (es común a la aplicación), y está úbicada directamente en el
+directorio <tt class="docutils literal"><span class="pre">view</span></tt>, no lleva nada ni antes del primer <tt class="docutils literal"><span class="pre">:</span></tt> ni del segundo.</p>
+
+</div>
+La herencia de plantillas puede llevarse a cabo a varios niveles, esto es, una
+plantilla puede heredar de otra plantilla que a su vez hereda de otra plantilla,
+etcétera. No obstante no se recomienda llevar a cabo muchos niveles de herencia,
+ya que puede llegar a ser bastante confuso e incontrolable. La estrategia que
+recomiendan los creadores de <em>Symfony2</em> es usar tres niveles de herencia:
+<ul class="simple">
+	<li>en el primer nivel se colocan la estructura básica del documento <em>HTML</em>, se
+corresponde con lo que hace la plantilla <tt class="docutils literal"><span class="pre">::base.html.twig</span></tt>,</li>
+	<li>en el segundo se colocan los elementos específicos de cada sección del sitio,
+por ejemplo el menú de la sección,</li>
+	<li>y en el tercero se reserva para los elementos propios de la acción, se
+corresponde con nuestra plantilla
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index.twig.html</span></tt></li>
+</ul>
+Tan sólo nos falta incluir los menús que serán comunes a todas las páginas de
+la aplicación. Seguiremos la estrategia de tres niveles de herencia que acabamos
+de exponer. Creamos la plantilla genéral
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle::layout.html.twig</span></tt>. Según la lógica de los
+nombres lógicos, esta se debe ubicar en:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/layout.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'::base.html.twig'</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">body</span> <span class="cp">%}</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"cabecera"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;h1&gt;</span>Información de alimentos<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"menu"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;hr/&gt;</span>
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_homepage'</span><span class="o">)</span><span class="cp">}}</span><span class="s">"</span><span class="nt">&gt;</span>inicio<span class="nt">&lt;/a&gt;</span> |
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>ver alimentos<span class="nt">&lt;/a&gt;</span> |
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>insertar alimento<span class="nt">&lt;/a&gt;</span> |
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>buscar por nombre<span class="nt">&lt;/a&gt;</span> |
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">""</span><span class="nt">&gt;</span>buscar por energia<span class="nt">&lt;/a&gt;</span> |
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">""</span><span class="nt">&gt;</span>búsqueda combinada<span class="nt">&lt;/a&gt;</span>
+<span class="nt">&lt;hr/&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"contenido"</span><span class="nt">&gt;</span>
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"pie"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;hr/&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">align=</span><span class="s">"center"</span><span class="nt">&gt;</span>- pie de página -<span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">En la línea 10 hemos usado la función <tt class="docutils literal"><span class="pre">path</span></tt> de <em>twig</em> para construir
+la <em>URL’s</em> del menú. Está función recibe como argumento el nombre de la ruta
+cuya <em>URL</em> se desea calcular. Únicamente la hemos usado en el primer enlace
+del menú, pués, por ahora, es la única ruta que hemos definido.</p>
+
+</div>
+Ahora es esta plantilla la que extiende a la plantilla base, por tanto, habrá
+que cambiar la plantilla
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:index.html.twig</span></tt> para que extienda
+de <tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle::layout.html.twig</span></tt>, y para que redefina
+el bloque <tt class="docutils literal"><span class="pre">contenido</span></tt> de esta última. Quedaría así:
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+<span class="nt">&lt;h1&gt;</span>Inicio<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;h3&gt;</span> Fecha: <span class="cp">{{</span><span class="nv">fecha</span><span class="cp">}}</span>  <span class="nt">&lt;/h3&gt;</span>
+<span class="cp">{{</span><span class="nv">mensaje</span><span class="cp">}}</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Vuelve a probar la página. Ya sólo nos falta incorporarle estilos <em>CSS’s</em>.
+
+</div>
+<div class="section" id="instalacion-de-los-assets-de-un-bundle">
+<h3>Instalación de los <em>assets</em> de un <em>bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#instalacion-de-los-assets-de-un-bundle">¶</a></h3>
+Ya hemos dicho que un <em>bundle</em> es un directorio que aloja todo aquello relativo
+a una funcionalidad determinada. Puede incluir clases <em>PHP</em>, plantillas,
+configuraciones, <em>CSS’s</em> y <em>javascripts</em>.
+
+Cuando los <em>bundles</em> incluyen <em>assets</em>, es decir archivos que no son procesados
+por <em>PHP</em> y son servidos directamente por el servidor web (<em>CSS’s</em>,
+<em>javascripts</em> e imágenes son los <em>assets</em> más habituales), estos deben ser copiados dentro del directorio <tt class="docutils literal"><span class="pre">web</span></tt> del proyecto o enlazados desde dicho directorio, ya que es ahí únicamente donde el servidor web puede acceder en busca de archivos (suponiendo que lo hemos configurado correctamente para un entorno de producción).
+
+Por otro lado en un <em>bundle</em> los <em>assets</em> deben ser ubicados en el directorio
+<tt class="docutils literal"><span class="pre">Resources/public</span></tt>. Si lo examinas verás que tiene la siguiente estructura:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>Resources
+└─ public
+   ├── css
+   ├── images
+   └── js</pre>
+</div>
+</div>
+Se ha reservado un directorio para cada tipo de <em>asset</em>. Copia el siguiente código
+<em>CSS’s</em> en el archivo <tt class="docutils literal"><span class="pre">Resources/public/css</span></tt> del <em>bundle</em>.
+<div class="highlight-css">
+<div class="highlight">
+<pre><span class="nt">body</span> <span class="p">{</span>
+  <span class="k">padding-left</span><span class="o">:</span> <span class="m">11em</span><span class="p">;</span>
+  <span class="k">font-family</span><span class="o">:</span> <span class="n">Georgia</span><span class="o">,</span> <span class="s2">"Times New Roman"</span><span class="o">,</span>
+        <span class="n">Times</span><span class="o">,</span> <span class="k">serif</span><span class="p">;</span>
+  <span class="k">color</span><span class="o">:</span> <span class="nb">purple</span><span class="p">;</span>
+  <span class="k">background-color</span><span class="o">:</span> <span class="m">#d8da3d</span> <span class="p">}</span>
+<span class="nt">ul</span><span class="nc">.navbar</span> <span class="p">{</span>
+  <span class="k">list-style-type</span><span class="o">:</span> <span class="k">none</span><span class="p">;</span>
+  <span class="k">padding</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+  <span class="k">margin</span><span class="o">:</span> <span class="m">0</span><span class="p">;</span>
+  <span class="k">position</span><span class="o">:</span> <span class="k">absolute</span><span class="p">;</span>
+  <span class="k">top</span><span class="o">:</span> <span class="m">2em</span><span class="p">;</span>
+  <span class="k">left</span><span class="o">:</span> <span class="m">1em</span><span class="p">;</span>
+  <span class="k">width</span><span class="o">:</span> <span class="m">9em</span> <span class="p">}</span>
+<span class="nt">h1</span> <span class="p">{</span>
+  <span class="k">font-family</span><span class="o">:</span> <span class="n">Helvetica</span><span class="o">,</span> <span class="n">Geneva</span><span class="o">,</span> <span class="n">Arial</span><span class="o">,</span>
+        <span class="n">SunSans</span><span class="o">-</span><span class="n">Regular</span><span class="o">,</span> <span class="k">sans-serif</span> <span class="p">}</span>
+<span class="nt">ul</span><span class="nc">.navbar</span> <span class="nt">li</span> <span class="p">{</span>
+  <span class="k">background</span><span class="o">:</span> <span class="nb">white</span><span class="p">;</span>
+  <span class="k">margin</span><span class="o">:</span> <span class="m">0.5em</span> <span class="m">0</span><span class="p">;</span>
+  <span class="k">padding</span><span class="o">:</span> <span class="m">0.3em</span><span class="p">;</span>
+  <span class="k">border-right</span><span class="o">:</span> <span class="m">1em</span> <span class="k">solid</span> <span class="nb">black</span> <span class="p">}</span>
+<span class="nt">ul</span><span class="nc">.navbar</span> <span class="nt">a</span> <span class="p">{</span>
+  <span class="k">text-decoration</span><span class="o">:</span> <span class="k">none</span> <span class="p">}</span>
+<span class="nt">a</span><span class="nd">:link</span> <span class="p">{</span>
+  <span class="k">color</span><span class="o">:</span> <span class="nb">blue</span> <span class="p">}</span>
+<span class="nt">a</span><span class="nd">:visited</span> <span class="p">{</span>
+  <span class="k">color</span><span class="o">:</span> <span class="nb">purple</span> <span class="p">}</span>
+<span class="nt">address</span> <span class="p">{</span>
+  <span class="k">margin-top</span><span class="o">:</span> <span class="m">1em</span><span class="p">;</span>
+  <span class="k">padding-top</span><span class="o">:</span> <span class="m">1em</span><span class="p">;</span>
+  <span class="k">border-top</span><span class="o">:</span> <span class="k">thin</span> <span class="k">dotted</span> <span class="p">}</span>
+<span class="nf">#contenido</span> <span class="p">{</span>
+  <span class="k">display</span><span class="o">:</span> <span class="k">block</span><span class="p">;</span>
+  <span class="k">margin</span><span class="o">:</span> <span class="k">auto</span><span class="p">;</span>
+  <span class="k">width</span><span class="o">:</span> <span class="k">auto</span><span class="p">;</span>
+  <span class="k">min-height</span><span class="o">:</span><span class="m">400px</span><span class="p">;</span>
+<span class="p">}</span></pre>
+</div>
+</div>
+Para que el servidor web la pueda cargar, se utiliza el siguiente comando de consola:
+<div class="highlight-bash">
+<div class="highlight">
+<pre># php app/console assets:install web --symlink</pre>
+</div>
+</div>
+La función de este comando es realizar una copia o un enlace simbólico (si se
+especifica la opión <tt class="docutils literal"><span class="pre">--symlink</span></tt>, aunque en la plataforma <em>Windows</em> esto
+último no es posible) del contenido de los directorios <tt class="docutils literal"><span class="pre">Resouces/public</span></tt> de
+todos los <em>bundles</em> que se encuentren registrados en el framework. El comando
+requiere un argumento (<tt class="docutils literal"><span class="pre">web</span></tt> en nuestro caso), que especifica el directorio
+donde se realizará la copia o el enlace simbólico.
+
+Dicha copia o enlazado se organiza de la siguiente manera:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>web
+├─ nombre_bundle_1
+|  ├── css
+|  ├── images
+|  └── js
+├─ nombre_bundle_2
+|  ├── css
+|  ├── images
+|  └── js
+...
+└─ nombre_bundle_N
+   ├── css
+   ├── images
+   └── js</pre>
+</div>
+</div>
+Ya sólo falta incluir una referencia en el código <em>HTML</em> a la <em>CSS</em> que acabamos
+de incorporar. Aunque es posible incluir el enlace a la <em>CSS</em> directamente en
+la plantilla <tt class="docutils literal"><span class="pre">::base.html.twig</span></tt>, el lugar correcto es en la plantilla
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentosAlimentosBundle::layout.html.twig</span></tt>. Teniendo en cuenta
+lo que hemos explicado acerca del mecanismo de herencia, habría que añadir
+un bloque <tt class="docutils literal"><span class="pre">stylesheets</span></tt> (heredado de la plantilla padre <tt class="docutils literal"><span class="pre">::base.html.twig</span></tt>),
+en el que se haga referencia al archivo <em>CSS</em>.
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/layout.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre>...
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">stylesheets</span> <span class="cp">%}</span>
+ <span class="nt">&lt;link</span> <span class="na">href=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">asset</span><span class="o">(</span><span class="s1">'bundles/jazzywebaulasmentoralimentos/css/estilo.css'</span><span class="o">)</span> <span class="cp">}}</span><span class="s">"</span> <span class="na">type=</span><span class="s">"text/css"</span> <span class="na">rel=</span><span class="s">"stylesheet"</span> <span class="nt">/&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span>
+...</pre>
+</div>
+</div>
+En este código hemos utilizado la función de <em>twig</em> <tt class="docutils literal"><span class="pre">asset</span></tt>, la cual crea la
+<em>URL</em> correcta que apunta al <em>asset</em> en cuestion. La ruta que toma como argumento
+la función <em>asset</em> se especifica tomando como raíz el directorio <tt class="docutils literal"><span class="pre">web</span></tt>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Puedes colocar el bloque <tt class="docutils literal"><span class="pre">stylesheets</span></tt> delante o detrás del bloque <tt class="docutils literal"><span class="pre">body</span></tt>.</p>
+
+</div>
+Recarga la página y la verás con los estilos aplicados.
+
+</div>
+<div class="section" id="implementamos-el-resto-de-la-aplicacion">
+<h3>Implementamos el resto de la aplicación<a class="headerlink" title="Enlazar permanentemente con este título" href="#implementamos-el-resto-de-la-aplicacion">¶</a></h3>
+Siguiendo estos tres pasos: enrutar, crear código de la acción (controlador) y
+crear la plantilla, podemos completar lo que nos falta de la aplicación. No
+obstante, en las acciones que faltan, se necesita acceder a la base de datos
+para recuperar, modificar y crear alimentos. La distribución standard de
+<em>Symfony2</em> proporciona un potente servicio para el acceso a los datos
+persistentes, es decir, los que se almacenan en algún tipo de base de datos. Pero
+no obliga a utilizarlo. No solo eso, tampoco forma parte del núcleo de
+<em>Symfony2</em>, es decir, no es un componente. Por ello es una decisión del
+desarrollador utilizarlo o no. Es en ese sentido que <em>Fabien Potencier</em>, lider
+del proyecto <em>Symfony2</em>, proclama que este último no es un framework <em>MVC</em>,
+ya que no dice nada sobre como debes construir tu modelo.
+
+Aunque lo recomendable es utilizar <em>Doctrine2</em> (que es el servicio de
+persistencia que viene incorporado en la distribución standard), o <em>Propel</em>,
+en este tutorial no los vamos a utilizar por que ya llevamos muchos conceptos
+introducidos y no queremos sobrecargarlo. Además queremos ilustrar como podemos
+construir el modelo a nuestro antojo.
+
+Así pues, antes de implentar el resto de las acciones que componen la
+aplicación, vamos a elaborar el modelo.
+
+Crea un directorio denominado <tt class="docutils literal"><span class="pre">Model</span></tt> (el nombre puede ser cualquiera), y
+crea ahí un fichero <tt class="docutils literal"><span class="pre">Model.php</span></tt> con el siguiente código:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Model/Model.php</span></tt>
+<div class="highlight-php">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">&lt;?php</span>
+
+ <span class="k">namespace</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Model</span><span class="p">;</span>
+
+ <span class="k">class</span> <span class="nc">Model</span>
+ <span class="p">{</span>
+     <span class="k">protected</span> <span class="nv">$conexion</span><span class="p">;</span>
+
+      <span class="k">public</span> <span class="k">function</span> <span class="nf">__construct</span><span class="p">(</span><span class="nv">$dbname</span><span class="p">,</span><span class="nv">$dbuser</span><span class="p">,</span><span class="nv">$dbpass</span><span class="p">,</span><span class="nv">$dbhost</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="nv">$mvc_bd_conexion</span> <span class="o">=</span> <span class="nb">mysql_connect</span><span class="p">(</span><span class="nv">$dbhost</span><span class="p">,</span> <span class="nv">$dbuser</span><span class="p">,</span> <span class="nv">$dbpass</span><span class="p">);</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$mvc_bd_conexion</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">die</span><span class="p">(</span><span class="s1">'No ha sido posible realizar la conexión con la base de datos: '</span>
+          <span class="o">.</span> <span class="nb">mysql_error</span><span class="p">());</span>
+      <span class="p">}</span>
+      <span class="nb">mysql_select_db</span><span class="p">(</span><span class="nv">$dbname</span><span class="p">,</span> <span class="nv">$mvc_bd_conexion</span><span class="p">);</span>
+
+      <span class="nx">mysql_set_charset</span><span class="p">(</span><span class="s1">'utf8'</span><span class="p">);</span>
+
+      <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">conexion</span> <span class="o">=</span> <span class="nv">$mvc_bd_conexion</span><span class="p">;</span>
+  <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">bd_conexion</span><span class="p">()</span>
+     <span class="p">{</span>
+
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">dameAlimentos</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$sql</span> <span class="o">=</span> <span class="s2">"select * from alimentos order by energia desc"</span><span class="p">;</span>
+
+         <span class="nv">$result</span> <span class="o">=</span> <span class="nb">mysql_query</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">conexion</span><span class="p">);</span>
+
+         <span class="nv">$alimentos</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+         <span class="k">while</span> <span class="p">(</span><span class="nv">$row</span> <span class="o">=</span> <span class="nb">mysql_fetch_assoc</span><span class="p">(</span><span class="nv">$result</span><span class="p">))</span>
+         <span class="p">{</span>
+             <span class="nv">$alimentos</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$row</span><span class="p">;</span>
+         <span class="p">}</span>
+
+         <span class="k">return</span> <span class="nv">$alimentos</span><span class="p">;</span>
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">buscarAlimentosPorNombre</span><span class="p">(</span><span class="nv">$nombre</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="nv">$nombre</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$nombre</span><span class="p">);</span>
+
+         <span class="nv">$sql</span> <span class="o">=</span> <span class="s2">"select * from alimentos where nombre like '"</span> <span class="o">.</span> <span class="nv">$nombre</span> <span class="o">.</span> <span class="s2">"' order</span>
+<span class="s2"> by energia desc"</span><span class="p">;</span>
+
+         <span class="nv">$result</span> <span class="o">=</span> <span class="nb">mysql_query</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">conexion</span><span class="p">);</span>
+
+         <span class="nv">$alimentos</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+         <span class="k">while</span> <span class="p">(</span><span class="nv">$row</span> <span class="o">=</span> <span class="nb">mysql_fetch_assoc</span><span class="p">(</span><span class="nv">$result</span><span class="p">))</span>
+         <span class="p">{</span>
+             <span class="nv">$alimentos</span><span class="p">[]</span> <span class="o">=</span> <span class="nv">$row</span><span class="p">;</span>
+         <span class="p">}</span>
+
+         <span class="k">return</span> <span class="nv">$alimentos</span><span class="p">;</span>
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">dameAlimento</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="nv">$id</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+
+         <span class="nv">$sql</span> <span class="o">=</span> <span class="s2">"select * from alimentos where id="</span><span class="o">.</span><span class="nv">$id</span><span class="p">;</span>
+
+         <span class="nv">$result</span> <span class="o">=</span> <span class="nb">mysql_query</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">conexion</span><span class="p">);</span>
+
+         <span class="nv">$alimentos</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+         <span class="nv">$row</span> <span class="o">=</span> <span class="nb">mysql_fetch_assoc</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+
+         <span class="k">return</span> <span class="nv">$row</span><span class="p">;</span>
+
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">insertarAlimento</span><span class="p">(</span><span class="nv">$n</span><span class="p">,</span> <span class="nv">$e</span><span class="p">,</span> <span class="nv">$p</span><span class="p">,</span> <span class="nv">$hc</span><span class="p">,</span> <span class="nv">$f</span><span class="p">,</span> <span class="nv">$g</span><span class="p">)</span>
+     <span class="p">{</span>
+         <span class="nv">$n</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$n</span><span class="p">);</span>
+         <span class="nv">$e</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$e</span><span class="p">);</span>
+         <span class="nv">$p</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$p</span><span class="p">);</span>
+         <span class="nv">$hc</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$hc</span><span class="p">);</span>
+         <span class="nv">$f</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$f</span><span class="p">);</span>
+         <span class="nv">$g</span> <span class="o">=</span> <span class="nb">htmlspecialchars</span><span class="p">(</span><span class="nv">$g</span><span class="p">);</span>
+
+         <span class="nv">$sql</span> <span class="o">=</span> <span class="s2">"insert into alimentos (nombre, energia, proteina, hidratocarbono,</span>
+<span class="s2"> fibra, grasatotal) values ('"</span> <span class="o">.</span>
+                 <span class="nv">$n</span> <span class="o">.</span> <span class="s2">"',"</span> <span class="o">.</span> <span class="nv">$e</span> <span class="o">.</span> <span class="s2">","</span> <span class="o">.</span> <span class="nv">$p</span> <span class="o">.</span> <span class="s2">","</span> <span class="o">.</span> <span class="nv">$hc</span> <span class="o">.</span> <span class="s2">","</span> <span class="o">.</span> <span class="nv">$f</span> <span class="o">.</span> <span class="s2">","</span> <span class="o">.</span> <span class="nv">$g</span> <span class="o">.</span> <span class="s2">")"</span><span class="p">;</span>
+
+         <span class="nv">$result</span> <span class="o">=</span> <span class="nb">mysql_query</span><span class="p">(</span><span class="nv">$sql</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">conexion</span><span class="p">);</span>
+
+         <span class="k">return</span> <span class="nv">$result</span><span class="p">;</span>
+     <span class="p">}</span>
+
+ <span class="p">}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+El próximo paso es completar el código del controlador con el resto de las acciones que
+se han mapeado en las rutas definidas anteriormente. El código del controlador
+<tt class="docutils literal"><span class="pre">DefaultController</span></tt> quedaría así:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Controller/DefaultController.php</span></tt>
+<div class="highlight-php">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">&lt;?php</span>
+
+ <span class="k">namespace</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Controller</span><span class="p">;</span>
+
+ <span class="k">use</span> <span class="nx">Symfony\Bundle\FrameworkBundle\Controller\Controller</span><span class="p">;</span>
+ <span class="k">use</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Model\Model</span><span class="p">;</span>
+ <span class="k">use</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Config\Config</span><span class="p">;</span>
+
+ <span class="k">class</span> <span class="nc">DefaultController</span> <span class="k">extends</span> <span class="nx">Controller</span>
+ <span class="p">{</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">indexAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+         <span class="s1">'mensaje'</span> <span class="o">=&gt;</span> <span class="s1">'Bienvenido al curso de Symfony2'</span><span class="p">,</span>
+         <span class="s1">'fecha'</span> <span class="o">=&gt;</span> <span class="nb">date</span><span class="p">(</span><span class="s1">'d-m-yyy'</span><span class="p">),</span>
+         <span class="p">);</span>
+
+         <span class="k">return</span>
+          <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:index.html.twig'</span><span class="p">,</span>
+          <span class="nv">$params</span><span class="p">);</span>
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">listarAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$m</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model</span><span class="p">(</span><span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_nombre</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_usuario</span><span class="p">,</span>
+                         <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_clave</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_hostname</span><span class="p">);</span>
+
+         <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+         <span class="s1">'alimentos'</span> <span class="o">=&gt;</span> <span class="nv">$m</span><span class="o">-&gt;</span><span class="na">dameAlimentos</span><span class="p">(),</span>
+         <span class="p">);</span>
+
+         <span class="k">return</span>
+          <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:mostrarAlimentos.html.twig'</span><span class="p">,</span>
+          <span class="nv">$params</span><span class="p">);</span>
+
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">insertarAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+         <span class="s1">'nombre'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'energia'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'proteina'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'hc'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'fibra'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'grasa'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="p">);</span>
+
+         <span class="nv">$m</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model</span><span class="p">(</span><span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_nombre</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_usuario</span><span class="p">,</span>
+          <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_clave</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_hostname</span><span class="p">);</span>
+
+         <span class="k">if</span> <span class="p">(</span><span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'REQUEST_METHOD'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'POST'</span><span class="p">)</span> <span class="p">{</span>
+
+         <span class="c1">// comprobar campos formulario</span>
+         <span class="k">if</span> <span class="p">(</span><span class="nv">$m</span><span class="o">-&gt;</span><span class="na">insertarAlimento</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">[</span><span class="s1">'nombre'</span><span class="p">],</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'energia'</span><span class="p">],</span>
+          <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'proteina'</span><span class="p">],</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'hc'</span><span class="p">],</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'fibra'</span><span class="p">],</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'grasa'</span><span class="p">]))</span> <span class="p">{</span>
+             <span class="nv">$params</span><span class="p">[</span><span class="s1">'mensaje'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Alimento insertado correctamente'</span><span class="p">;</span>
+         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+             <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+             <span class="s1">'nombre'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'nombre'</span><span class="p">],</span>
+             <span class="s1">'energia'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'energia'</span><span class="p">],</span>
+             <span class="s1">'proteina'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'proteina'</span><span class="p">],</span>
+             <span class="s1">'hc'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'hc'</span><span class="p">],</span>
+             <span class="s1">'fibra'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'fibra'</span><span class="p">],</span>
+             <span class="s1">'grasa'</span> <span class="o">=&gt;</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'grasa'</span><span class="p">],</span>
+             <span class="p">);</span>
+             <span class="nv">$params</span><span class="p">[</span><span class="s1">'mensaje'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'No se ha podido insertar el alimento. Revisa el formulario'</span><span class="p">;</span>
+         <span class="p">}</span>
+         <span class="p">}</span>
+
+         <span class="k">return</span>
+          <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:formInsertar.html.twig'</span><span class="p">,</span>
+          <span class="nv">$params</span><span class="p">);</span>
+
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">buscarPorNombreAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="nv">$params</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+         <span class="s1">'nombre'</span> <span class="o">=&gt;</span> <span class="s1">''</span><span class="p">,</span>
+         <span class="s1">'resultado'</span> <span class="o">=&gt;</span> <span class="k">array</span><span class="p">(),</span>
+         <span class="p">);</span>
+
+         <span class="nv">$m</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model</span><span class="p">(</span><span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_nombre</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_usuario</span><span class="p">,</span>
+                         <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_clave</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_hostname</span><span class="p">);</span>
+
+         <span class="k">if</span> <span class="p">(</span><span class="nv">$_SERVER</span><span class="p">[</span><span class="s1">'REQUEST_METHOD'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'POST'</span><span class="p">)</span> <span class="p">{</span>
+         <span class="nv">$params</span><span class="p">[</span><span class="s1">'nombre'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'nombre'</span><span class="p">];</span>
+         <span class="nv">$params</span><span class="p">[</span><span class="s1">'resultado'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$m</span><span class="o">-&gt;</span><span class="na">buscarAlimentosPorNombre</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">[</span><span class="s1">'nombre'</span><span class="p">]);</span>
+         <span class="p">}</span>
+
+         <span class="k">return</span>
+          <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:buscarPorNombre.html.twig'</span><span class="p">,</span>
+          <span class="nv">$params</span><span class="p">);</span>
+
+     <span class="p">}</span>
+
+     <span class="k">public</span> <span class="k">function</span> <span class="nf">verAction</span><span class="p">()</span>
+     <span class="p">{</span>
+         <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">isset</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]))</span> <span class="p">{</span>
+         <span class="k">throw</span> <span class="k">new</span> <span class="nx">Exception</span><span class="p">(</span><span class="s1">'Página no encontrada'</span><span class="p">);</span>
+         <span class="p">}</span>
+
+         <span class="nv">$id</span> <span class="o">=</span> <span class="nv">$_GET</span><span class="p">[</span><span class="s1">'id'</span><span class="p">];</span>
+
+         <span class="nv">$m</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model</span><span class="p">(</span><span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_nombre</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_usuario</span><span class="p">,</span>
+                         <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_clave</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_hostname</span><span class="p">);</span>
+
+         <span class="nv">$alimento</span> <span class="o">=</span> <span class="nv">$m</span><span class="o">-&gt;</span><span class="na">dameAlimento</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+
+         <span class="nv">$params</span> <span class="o">=</span> <span class="nv">$alimento</span><span class="p">;</span>
+
+         <span class="k">return</span>
+          <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:verAlimento.html.twig'</span><span class="p">,</span>
+         <span class="nv">$params</span><span class="p">);</span>
+
+     <span class="p">}</span>
+
+ <span class="p">}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Para que podamos utilizar la clase <tt class="docutils literal"><span class="pre">Model</span></tt> en el controlador sin necesidad de
+referirnos a ella por su nombre completo,
+<tt class="docutils literal"><span class="pre">Jazzyweb\AulasMentor\AlimentosBundle\Model\Model</span></tt>, hemos utilizado (línea 6) la
+directiva <tt class="docutils literal"><span class="pre">use</span></tt> de <em>PHP 5.3</em> en dicho fichero. Así podemos utilizar la clase
+<tt class="docutils literal"><span class="pre">Model</span></tt> directamente en el controlador.
+
+En la clase <tt class="docutils literal"><span class="pre">Model</span></tt> puedes observar que, para el acceso a la base de datos, se hace
+referencia a unos parámetros de configuración a través de la clase estática <tt class="docutils literal"><span class="pre">Config</span></tt>.
+Crea dicha clase en el fichero <tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Config/Config.php</span></tt>, con el siguiente código:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Config/Config.php</span></tt>
+<div class="highlight-php">
+<div class="highlight">
+<pre><span class="cp">&lt;?php</span>
+
+<span class="k">namespace</span> <span class="nx">Jazzyweb\AulasMentor\AlimentosBundle\Config</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Config</span>
+<span class="p">{</span>
+    <span class="k">static</span> <span class="k">public</span> <span class="nv">$mvc_bd_hostname</span> <span class="o">=</span> <span class="s2">"localhost"</span><span class="p">;</span>
+    <span class="k">static</span> <span class="k">public</span> <span class="nv">$mvc_bd_nombre</span>   <span class="o">=</span> <span class="s2">"alimentos"</span><span class="p">;</span>
+    <span class="k">static</span> <span class="k">public</span> <span class="nv">$mvc_bd_usuario</span>  <span class="o">=</span> <span class="s2">"root"</span><span class="p">;</span>
+    <span class="k">static</span> <span class="k">public</span> <span class="nv">$mvc_bd_clave</span>    <span class="o">=</span> <span class="s2">"root"</span><span class="p">;</span>
+    <span class="k">static</span> <span class="k">public</span> <span class="nv">$mvc_vis_css</span>     <span class="o">=</span> <span class="s2">"estilo.css"</span><span class="p">;</span>
+<span class="p">}</span></pre>
+</div>
+</div>
+Esta forma de especificar los parámetros de configuración no es la más “symfónica”,
+pero es suficiente para los propósitos de este tutorial. En otro tutorial explicaremos
+como usar la inyección de dependencias para declarar los parámetros en el <em>Symfony2
+way</em>.
+
+Como puedes ver hemos comenzado por el 2º paso del flujo básico de desarrollo
+de páginas con <em>Symfony2</em> es decir, escribir el controlador. En realidad el
+orden no importa mucho; al final hay que tener los tres pasos resueltos antes
+de que funcione. Así que vamos a por el primer paso: definir las rutas. Esto
+lo hacemos editando el fichero
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/config/routing.yml</span></tt> y
+plasmando ahí la tabla de rutas. Recuerda:
+<table class="docutils" border="1"><colgroup> <col width="30%" /> <col width="70%" /> </colgroup>
+<thead valign="bottom">
+<tr>
+<th class="head">URL</th>
+<th class="head">Acción</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr>
+<td>/</td>
+<td>mostrar pantalla inicio</td>
+</tr>
+<tr>
+<td>/listar</td>
+<td>listar alimentos</td>
+</tr>
+<tr>
+<td>/insertar</td>
+<td>insertar un alimento</td>
+</tr>
+<tr>
+<td>/buscar</td>
+<td>buscar alimentos</td>
+</tr>
+<tr>
+<td>/ver/x</td>
+<td>ver el alimento <em>x</em></td>
+</tr>
+</tbody>
+</table>
+El archivo <tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/config/routing.yml</span></tt> queda así:
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JAMAB_homepage</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">index</span> <span class="p-Indicator">}</span>
+
+<span class="l-Scalar-Plain">JAMAB_listar</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/listar</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">listar</span> <span class="p-Indicator">}</span>
+
+<span class="l-Scalar-Plain">JAMAB_insertar</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/insertar</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">insertar</span> <span class="p-Indicator">}</span>
+
+<span class="l-Scalar-Plain">JAMAB_buscar</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/buscar</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">buscarPorNombre</span> <span class="p-Indicator">}</span>
+
+<span class="l-Scalar-Plain">JAMAB_ver</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/ver/{id}</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">ver</span> <span class="p-Indicator">}</span></pre>
+</div>
+</div>
+La última ruta (<tt class="docutils literal"><span class="pre">JAMAB_ver</span></tt>) utiliza una funcionalidad muy interesante del
+sistema de <em>Routing</em> de <em>Symfony2</em> que se utiliza continuamente. Se trata de
+introducir en la propia ruta los parámetros que se pasarán por <em>GET</em> al servidor
+web. Los valores encerrados entre llaves, en nuestro caso <tt class="docutils literal"><span class="pre">{id}</span></tt>, se
+denominan <em>placeholders</em>. El sistema de <em>Routing</em> parsea las <em>URL’s</em>
+que coincidan con la ruta y asigna el valor que venga en la posición de cada
+<em>placeholder</em> a una variable denominada con el nombre especificado entre las
+llaves. Veámoslo con un ejemplo. La siguiente ruta:
+<div class="highlight-bash">
+<div class="highlight">
+<pre>http://localhost/Symfony/web/app_dev.php/alimentos/ver/5</pre>
+</div>
+</div>
+Coincide con la ruta <tt class="docutils literal"><span class="pre">JAMAB_ver</span></tt> (recuerda que a todas las rutas del <em>bundle</em>
+les hemos colocado el prefijo <tt class="docutils literal"><span class="pre">alimentos</span></tt>). El sistema de <em>Routing</em>, al
+parsearla, asignará al objeto <em>Request</em> de <em>Symfony2</em> una variable denominada
+<tt class="docutils literal"><span class="pre">id</span></tt>, con un valor <tt class="docutils literal"><span class="pre">5</span></tt>. Además, esta variable se pasará como argumento
+al controlador especificado en la ruta, en nuestro caso a
+<tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle:Default:ver</span></tt>. Se consigue, además de
+usar <em>URL’s</em> elegantes en la que sólo se utiliza el caracter <tt class="docutils literal"><span class="pre">/</span></tt>, eliminar
+el nombre de las variables de la <em>query string</em>, ocultando información que no
+es necesaria para el cliente.
+
+<em>Symfony2</em> mapea esta ruta en una acción llamada <tt class="docutils literal"><span class="pre">verAction($id)</span></tt> a la que se
+le pasa el argumento <tt class="docutils literal"><span class="pre">id</span></tt>. Vamos a cambiar la acción <tt class="docutils literal"><span class="pre">verAction()</span></tt> para que
+su código sea más correcto y <em>symfónico</em>:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Controller/DefaultController.php</span></tt>
+<div class="highlight-php">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">&lt;?php</span>
+<span class="o">...</span>
+<span class="k">public</span> <span class="k">function</span> <span class="nf">verAction</span><span class="p">(</span><span class="nv">$id</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="nv">$m</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Model</span><span class="p">(</span><span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_nombre</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_usuario</span><span class="p">,</span>
+                     <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_clave</span><span class="p">,</span> <span class="nx">Config</span><span class="o">::</span><span class="nv">$mvc_bd_hostname</span><span class="p">);</span>
+
+        <span class="nv">$alimento</span> <span class="o">=</span> <span class="nv">$m</span><span class="o">-&gt;</span><span class="na">dameAlimento</span><span class="p">(</span><span class="nv">$id</span><span class="p">);</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$alimento</span><span class="p">)</span>
+        <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nx">\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="nv">$params</span> <span class="o">=</span> <span class="nv">$alimento</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">render</span><span class="p">(</span><span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:verAlimento.html.twig'</span><span class="p">,</span> <span class="nv">$params</span><span class="p">);</span>
+
+ <span class="p">}</span>
+ <span class="o">...</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+En la línea 3 hemos introducido un argumento para recoger la variable creada
+por el sistema de <em>Routing</em>, y en las líneas 9-12 hemos utilizado las
+excepciones de <em>Symfony2</em> para tratar el caso de que el registro no exista.
+Fíjate que de esta manera no necesitamos utilizar la variable superglobal <tt class="docutils literal"><span class="pre">$_GET</span></tt>
+de <em>PHP</em>.
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">En lugar del nombre completo <tt class="docutils literal"><span class="pre">\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException()</span></tt>,
+puedes utilizar <tt class="docutils literal"><span class="pre">AccessDeniedHttpException()</span></tt>, si referencias el espacio
+de nombre al principio del fichero mediante la directiva <tt class="docutils literal"><span class="pre">use</span></tt>.</p>
+
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Las acciones <tt class="docutils literal"><span class="pre">buscarPorNombreAction</span></tt> y <tt class="docutils literal"><span class="pre">insertarAction</span></tt>, hacen uso de
+la variable global de <em>PHP</em> <tt class="docutils literal"><span class="pre">$_POST</span></tt>. Esto es una mala práctica en
+<em>Symfony2</em>, ya que en su lugar se debe utilizar el objeto <tt class="docutils literal"><span class="pre">Request</span></tt> del
+framework, que es una abstracción de la petición (<em>request</em>) <em>HTTP</em> en la que
+se han “limpiado” los valores de sus atributos de posibles cadenas potencialmente
+peligrosas (código malicioso). Será la primera y ultima vez que haremos esto.
+Sirva como ejemplo de que el hecho de utilizar un framework ayuda pero no es
+suficiente para generar un código de calidad. Es el programador quien, conociendo
+y aplicando las buenas prácticas de programación, produce un buen código.</p>
+
+</div>
+Y ahora a por las plantillas.
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/verAlimento.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre>  <span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+  <span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+  <span class="nt">&lt;h1&gt;</span><span class="cp">{{</span> <span class="nv">nombre</span> <span class="cp">}}</span><span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;table</span> <span class="na">border=</span><span class="s">"1"</span><span class="nt">&gt;</span>
+
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span>Energía<span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">energia</span> <span class="cp">}}</span> <span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span>Proteina<span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">proteina</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span>Hidratos de Carbono<span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">hidratocarbono</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span>Fibra<span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">fibra</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span>Grasa total<span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span> <span class="cp">{{</span><span class="nv">grasatotal</span><span class="cp">}}</span> <span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+  <span class="nt">&lt;/table&gt;</span>
+
+ <span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/mostrarAlimentos.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre> <span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+  <span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+  <span class="nt">&lt;table&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;th&gt;</span>alimento (por 100g)<span class="nt">&lt;/th&gt;</span>
+          <span class="nt">&lt;th&gt;</span>energía (Kcal)<span class="nt">&lt;/th&gt;</span>
+          <span class="nt">&lt;th&gt;</span>grasa (g)<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="cp">{%</span> <span class="k">for</span> <span class="nv">alimento</span> <span class="k">in</span> <span class="nv">alimentos</span> <span class="cp">%}</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_ver'</span><span class="o">,</span> <span class="o">{</span><span class="s1">'id'</span><span class="o">:</span> <span class="nv">alimento.id</span><span class="o">})</span> <span class="cp">}}</span><span class="s">"</span><span class="nt">&gt;</span><span class="cp">{{</span><span class="nv">alimento.nombre</span><span class="cp">}}</span><span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.energia</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.grasatotal</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+
+  <span class="nt">&lt;/table&gt;</span>
+
+  <span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+En esta última plantilla hemos introducido tres elementos nuevos del sistema
+<em>twig</em>:
+<ul class="simple">
+	<li>La navegación por un array. Fíjate que la acción que utiliza esta plantilla,
+<tt class="docutils literal"><span class="pre">listarAction()</span></tt>, le pasa como parámetros una colección (array) de alimentos
+devueltos por el método <tt class="docutils literal"><span class="pre">dameAlimentos</span></tt> del modelo. Las colecciones, es
+decir los arrays indexados (no asociativos), pueden ser iterados en una
+plantilla <em>twig</em> mediante la construcción <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">dato</span> <span class="pre">in</span> <span class="pre">datos</span> <span class="pre">%}</span></tt> -
+<tt class="docutils literal"><span class="pre">{%</span> <span class="pre">endfor</span> <span class="pre">%}</span></tt>, donde <tt class="docutils literal"><span class="pre">datos</span></tt> es el array que llega a la plantilla.</li>
+	<li>Por otro lado, cada elemento del array <tt class="docutils literal"><span class="pre">alimentos</span></tt> es un array asociativo.
+Sus elementos pueden ser accedido mediante la notación <tt class="docutils literal"><span class="pre">dato.propiedad</span></tt>.
+Una característica interesante de esta notación es que se puede utilizar no
+solo con arrays asociativos, sino con objetos provistos de <em>getters</em> sobre sus
+propiedades. Este hecho se utiliza intensa y extensamente en <em>Symfony2</em>.</li>
+	<li>Por último se utiliza la función <tt class="docutils literal"><span class="pre">path()</span></tt> de <em>twig</em>, que sirve para calcular
+la <em>URL</em> correcta a partir del nombre de la ruta. Así cuando cambiemos la
+aplicación de servidor o de ubicación, la ruta será calculada correctamente.
+Los argumentos de la ruta se pasan a la función <tt class="docutils literal"><span class="pre">path</span></tt> usando la sintaxis
+de un objeto <em>JSON</em>, es decir: <tt class="docutils literal"><span class="pre">{</span> <span class="pre">'param1':</span> <span class="pre">val1,</span> <span class="pre">...,</span> <span class="pre">`paramN':</span> <span class="pre">valN</span> <span class="pre">}</span></tt>.
+Esta función será otro de los elementos omnipresentes en cualquier aplicación
+web construida con <em>Symfony2</em> y <em>twig</em>.</li>
+</ul>
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/Default/formInsertar.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+ <span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">if</span> <span class="nv">mensaje</span> <span class="k">is</span> <span class="nf">defined</span> <span class="cp">%}</span>
+<span class="nt">&lt;b&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: red;"</span><span class="nt">&gt;</span><span class="cp">{{</span> <span class="nv">mensaje</span> <span class="cp">}}</span><span class="nt">&lt;/span&gt;&lt;/b&gt;</span>
+<span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+<span class="nt">&lt;br/&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">name=</span><span class="s">"formInsertar"</span> <span class="na">action=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_insertar'</span><span class="o">)</span> <span class="cp">}}</span><span class="s">"</span> <span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;table&gt;</span>
+        <span class="nt">&lt;tr&gt;</span>
+            <span class="nt">&lt;th&gt;</span>Nombre<span class="nt">&lt;/th&gt;</span>
+            <span class="nt">&lt;th&gt;</span>Energía (Kcal)<span class="nt">&lt;/th&gt;</span>
+            <span class="nt">&lt;th&gt;</span>Proteina (g)<span class="nt">&lt;/th&gt;</span>
+            <span class="nt">&lt;th&gt;</span>H. de carbono (g)<span class="nt">&lt;/th&gt;</span>
+            <span class="nt">&lt;th&gt;</span>Fibra (g)<span class="nt">&lt;/th&gt;</span>
+            <span class="nt">&lt;th&gt;</span>Grasa total (g)<span class="nt">&lt;/th&gt;</span>
+        <span class="nt">&lt;/tr&gt;</span>
+        <span class="nt">&lt;tr&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"nombre"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">nombre</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"energia"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">energia</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"proteina"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">proteina</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"hc"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">hc</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"fibra"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">fibra</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+            <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"grasa"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">grasa</span> <span class="cp">}}</span><span class="s">"</span> <span class="nt">/&gt;&lt;/td&gt;</span>
+        <span class="nt">&lt;/tr&gt;</span>
+
+    <span class="nt">&lt;/table&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"insertar"</span> <span class="na">name=</span><span class="s">"insertar"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+* Los valores deben referirse a 100 g del alimento
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div>
+</div>
+En esta plantilla hemos introducido otro elemento nuevo; la construcción
+<tt class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">data</span> <span class="pre">is</span> <span class="pre">defined</span> <span class="pre">%}</span></tt> - <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">endif</span> <span class="pre">%}</span></tt>, que como puedes deducir,
+comprueba si la variable <tt class="docutils literal"><span class="pre">data</span></tt> ha sido definida. A lo largo del curso
+veremos más expresiones lógicas utilizadas en los bloques <tt class="docutils literal"><span class="pre">if</span> <span class="pre">-</span> <span class="pre">endif</span></tt>.
+
+También hemos vuelto a utilizar la función <tt class="docutils literal"><span class="pre">path</span></tt> para escribir el parámetro
+<tt class="docutils literal"><span class="pre">action</span></tt> del formulario <em>HTML</em>.
+
+Llegados a este punto hemos de aclarar que <em>Symfony2</em> proporciona un potente
+servicio para la construcción de formularios que estudiaremos en su momento.
+Por lo pronto nos quedamos con esta manera sencilla y directa de crear
+formularios.
+
+Vamos a por la siguiente plantilla:
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/Default/buscarPorNombre.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre> <span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+  <span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+ <span class="nt">&lt;form</span> <span class="na">name=</span><span class="s">"formBusqueda"</span> <span class="na">action=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_buscar'</span><span class="o">)</span> <span class="cp">}}</span><span class="s">"</span> <span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
+
+      <span class="nt">&lt;table&gt;</span>
+          <span class="nt">&lt;tr&gt;</span>
+              <span class="nt">&lt;td&gt;</span>nombre alimento:<span class="nt">&lt;/td&gt;</span>
+              <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"nombre"</span> <span class="na">value=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">nombre</span> <span class="cp">}}</span><span class="s">"</span><span class="nt">&gt;</span>(puedes utilizar '%' como comodín)<span class="nt">&lt;/td&gt;</span>
+
+              <span class="nt">&lt;td&gt;&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"buscar"</span><span class="nt">&gt;&lt;/td&gt;</span>
+          <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;/table&gt;</span>
+
+      <span class="nt">&lt;/table&gt;</span>
+
+  <span class="nt">&lt;/form&gt;</span>
+
+  <span class="cp">{%</span> <span class="k">if</span> <span class="nv">resultado</span> <span class="cp">%}</span>
+  <span class="cp">{%</span> <span class="k">include</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:_tablaAlimentos.html.twig'</span> <span class="k">with</span> <span class="o">{</span><span class="s1">'alimentos'</span><span class="o">:</span> <span class="nv">resultado</span><span class="o">}</span> <span class="cp">%}</span>
+  <span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
+
+ <span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Otro elemento nuevo; la inclusión de plantillas en otras plantillas. Esto lo
+hacemos en la línea 21 mediante la función <tt class="docutils literal"><span class="pre">include</span></tt> de <em>twig</em>, la cual
+requiere como argumento el nombre lógico de la plantilla que se desea incluir.
+Los parámetros que necesita la plantilla incluida se pasan en un array con
+sintaxis <em>JSON</em> despues del token <tt class="docutils literal"><span class="pre">with</span></tt>.
+
+Este mecanismo de inclusión combinado con la herencia proporciona una gran
+flexibilidad al programador, otorgándole las herramientas necesarias para elaborar
+un código bien organizado y reusable.
+
+La plantilla incluida es la siguiente:
+<blockquote><tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/Default/_tablaAlimentos.html.twig</span></tt></blockquote>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre> <span class="nt">&lt;table&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;th&gt;</span>alimento (por 100g)<span class="nt">&lt;/th&gt;</span>
+          <span class="nt">&lt;th&gt;</span>energía (Kcal)<span class="nt">&lt;/th&gt;</span>
+          <span class="nt">&lt;th&gt;</span>grasa (g)<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="cp">{%</span> <span class="k">for</span> <span class="nv">alimento</span> <span class="k">in</span> <span class="nv">alimentos</span> <span class="cp">%}</span>
+      <span class="nt">&lt;tr&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.nombre</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.energia</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+          <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.grasatotal</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
+
+  <span class="nt">&lt;/table&gt;</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Y, por último, utilizando esta última plantilla que pinta un listado de alimentos,
+podemos simplificar la plantilla <tt class="docutils literal"><span class="pre">mostrarAlimentos.html.twig</span></tt> evitando la
+repetición de código innecesariamente.
+
+<tt class="docutils literal"><span class="pre">src/Jazzyweb/AulasMentor/AlimentosBundle/Resources/view/Default/mostrarAlimentos.html.twig</span></tt>
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3
+4
+5
+6
+7</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre> <span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+ <span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+ <span class="cp">{%</span> <span class="k">include</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:_tablaAlimentos.html.twig'</span> <span class="k">with</span> <span class="o">{</span><span class="s1">'alimentos'</span><span class="o">:</span> <span class="nv">alimentos</span><span class="o">}</span> <span class="cp">%}</span>
+
+ <span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+Y con esto ya tenemos la aplicación de gestión de alimentos terminada y
+construida en <em>Symfony2</em>. Aún puede hacerse de un modo más symfónico,
+utilizando los servicios de persistencia de datos (<em>Doctrine</em>), de creación
+de formularios y de validación de datos. Pero la intención de este tutorial es
+mostrar los elementos básicos para la creación de páginas en <em>Symfony2</em>, y por
+tanto vamos a dar por buena la aplicación tal y como está.
+
+Únicamente faltaría usar la función <tt class="docutils literal"><span class="pre">path()</span></tt> de <em>twig</em> para completar los
+enlaces de los menús. Pero eso vamos a dejar que lo hagas tú.
+
+</div>
+</div>
+<div class="section" id="el-tutorial-en-chuletas">
+<h2>El tutorial en chuletas<a class="headerlink" title="Enlazar permanentemente con este título" href="#el-tutorial-en-chuletas">¶</a></h2>
+<div class="section" id="generar-un-bundle">
+<h3>Generar un <em>bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#generar-un-bundle">¶</a></h3>
+<div class="highlight-bash">
+<div class="highlight">
+<pre># php app/console generate:bundle</pre>
+</div>
+</div>
+</div>
+<div class="section" id="registrar-un-bundle">
+<h3>Registrar un <em>bundle</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#registrar-un-bundle">¶</a></h3>
+Se hace en el archivo <tt class="docutils literal"><span class="pre">app/KernelApp.php</span></tt>, de la siguiente manera:
+<div class="highlight-php">
+<div class="highlight">
+<pre><span class="x">...</span>
+<span class="x">new Jazzyweb\AulasMentor\AlimentosBundle\JazzywebAulasMentorAlimentosBundle(),</span>
+<span class="x">...</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="enlazar-el-routing-de-un-bundle-con-el-routing-general-de-la-aplicacion">
+<h3>Enlazar el <em>routing</em> de un <em>bundle</em> con el <em>routing</em> general de la aplicación<a class="headerlink" title="Enlazar permanentemente con este título" href="#enlazar-el-routing-de-un-bundle-con-el-routing-general-de-la-aplicacion">¶</a></h3>
+Se hace añadiendo al archivo <tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt> (o <tt class="docutils literal"><span class="pre">routing_{env}.yml</span></tt>):
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span>
+<span class="l-Scalar-Plain">resource</span><span class="p-Indicator">:</span> <span class="s">"@JazzywebAulasMentorAlimentosBundle/Resources/config/routing.yml"</span>
+<span class="l-Scalar-Plain">prefix</span><span class="p-Indicator">:</span>   <span class="l-Scalar-Plain">/</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="pasos-para-acoplar-un-bundle-al-framework">
+<h3>Pasos para acoplar un <em>bundle</em> al framework<a class="headerlink" title="Enlazar permanentemente con este título" href="#pasos-para-acoplar-un-bundle-al-framework">¶</a></h3>
+<ol class="arabic simple">
+	<li>Registrar el espacio de nombre en el sistema de autocarga. Este paso no es
+necesario si ubicamos al <em>bundle</em> en el directorio <tt class="docutils literal"><span class="pre">src</span></tt>.</li>
+	<li>Registrar al bundle en el fichero <tt class="docutils literal"><span class="pre">app/AppKernel.php</span></tt>. Esta operación se
+puede hacer automáticamente a través del generador interactivo de <em>bundles</em>,
+pero si fallase por alguna razón (por ejemplo que los permisos de dicho archivo
+no estén bien definidos). Habría que hacerlo a mano.</li>
+	<li>Importar las tablas de enrutamiento del <em>bundle</em> en la tabla de enrutamiento
+de la aplicación.</li>
+</ol>
+</div>
+<div class="section" id="flujo-para-la-creacion-de-paginas-en-symfony2">
+<h3>Flujo para la creación de páginas en <em>Symfony2</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#flujo-para-la-creacion-de-paginas-en-symfony2">¶</a></h3>
+<ol class="arabic simple">
+	<li>Creación de la ruta en <tt class="docutils literal"><span class="pre">Resources/config/routing.yml</span></tt> del <em>bundle</em>, o
+directamente en <tt class="docutils literal"><span class="pre">app/config/routing.yml</span></tt>.</li>
+	<li>Creación de la acción en el controlador correspondiente en una clase que debe
+ubicarse en un fichero del directorio <tt class="docutils literal"><span class="pre">Controllers</span></tt> del <em>bundle</em>.</li>
+	<li>Creación de una plantilla en el directorio <tt class="docutils literal"><span class="pre">Resources/view</span></tt>.</li>
+</ol>
+</div>
+<div class="section" id="nombres-logicos-de-acciones">
+<h3>Nombres lógicos de acciones<a class="headerlink" title="Enlazar permanentemente con este título" href="#nombres-logicos-de-acciones">¶</a></h3>
+<tt class="docutils literal"><span class="pre">NombreBundle:NombreControlador:NombreAcción</span></tt>.
+
+Ejemplo:
+
+<tt class="docutils literal"><span class="pre">AcmeDemoBundle:Secured:login</span></tt> se mapea en la acción <tt class="docutils literal"><span class="pre">loginAction()</span></tt> de la
+clase <tt class="docutils literal"><span class="pre">Acme\DemoBundle\Controller\SecuredController</span></tt> definida (normalmente) en
+<tt class="docutils literal"><span class="pre">src/Acme/DemoBundle/Controller/SecuredController.php</span></tt>.
+
+</div>
+<div class="section" id="sintaxis-basica-de-twig">
+<h3>Sintaxis básica de <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#sintaxis-basica-de-twig">¶</a></h3>
+<tt class="docutils literal"><span class="pre">{{</span> <span class="pre">parametro</span> <span class="pre">}}</span></tt> -&gt; pinta el valor de la variable <tt class="docutils literal"><span class="pre">parametro</span></tt>.
+
+<tt class="docutils literal"><span class="pre">{%</span> <span class="pre">comando</span> <span class="pre">%}</span> <span class="pre">...</span> <span class="pre">{%</span> <span class="pre">endcomando</span> <span class="pre">%}</span></tt> -&gt; ejecuta la acción expresada por
+<tt class="docutils literal"><span class="pre">comando</span></tt> en el bloque definido desde su declaración hasta <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">endcomando%}</span></tt>.
+
+</div>
+<div class="section" id="herencia-en-plantilla-twig">
+<h3>Herencia en plantilla <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#herencia-en-plantilla-twig">¶</a></h3>
+Esta plantilla hereda de <tt class="docutils literal"><span class="pre">JazzywebAulasMentorAlimentosBundle::layout.html.twig</span></tt>, y
+modifica el bloque <tt class="docutils literal"><span class="pre">contenido</span></tt> que allí se declara.
+<div class="highlight-html+jinja">
+<table class="highlighttable">
+<tbody>
+<tr>
+<td class="linenos">
+<div class="linenodiv">
+<pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre>
+</div></td>
+<td class="code">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">extends</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle::layout.html.twig'</span> <span class="cp">%}</span>
+
+<span class="cp">{%</span> <span class="k">block</span> <span class="nv">contenido</span> <span class="cp">%}</span>
+
+<span class="nt">&lt;h1&gt;</span>Inicio<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;h3&gt;</span> Fecha: <span class="cp">{{</span><span class="nv">fecha</span><span class="cp">}}</span>  <span class="nt">&lt;/h3&gt;</span>
+<span class="cp">{{</span><span class="nv">mensaje</span><span class="cp">}}</span>
+
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="cp">%}</span></pre>
+</div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="funcion-path-de-twig">
+<h3>Función <tt class="docutils literal"><span class="pre">path</span></tt> de <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#funcion-path-de-twig">¶</a></h3>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_listar'</span><span class="o">,</span> <span class="o">{</span><span class="s1">'id'</span><span class="o">:</span> <span class="nv">alimento.id</span><span class="o">})</span> <span class="cp">}}</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="iterar-una-coleccion-array-de-datoso-en-twig">
+<h3>Iterar una colección (array) de datoso en <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#iterar-una-coleccion-array-de-datoso-en-twig">¶</a></h3>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">for</span> <span class="nv">alimento</span> <span class="k">in</span> <span class="nv">alimentos</span> <span class="cp">%}</span>
+  <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"</span><span class="cp">{{</span> <span class="nv">path</span><span class="o">(</span><span class="s1">'JAMAB_listar'</span><span class="o">,</span> <span class="o">{</span><span class="s1">'id'</span><span class="o">:</span> <span class="nv">alimento.id</span><span class="o">})</span> <span class="cp">}}</span><span class="s">"</span><span class="nt">&gt;</span><span class="cp">{{</span><span class="nv">alimento.nombre</span><span class="cp">}}</span><span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.energia</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span><span class="cp">{{</span> <span class="nv">alimento.grasatotal</span> <span class="cp">}}</span><span class="nt">&lt;/td&gt;</span>
+  <span class="nt">&lt;/tr&gt;</span>
+<span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="codigo-condicional-en-twig">
+<h3>Código condicional en <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#codigo-condicional-en-twig">¶</a></h3>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">if</span> <span class="nv">data</span> <span class="k">is</span> <span class="nf">defined</span> <span class="cp">%}</span>
+ ...
+<span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="inclusion-de-plantillas-en-twig">
+<h3>Inclusión de plantillas en <em>twig</em><a class="headerlink" title="Enlazar permanentemente con este título" href="#inclusion-de-plantillas-en-twig">¶</a></h3>
+<div class="highlight-html+jinja">
+<div class="highlight">
+<pre><span class="cp">{%</span> <span class="k">include</span> <span class="s1">'JazzywebAulasMentorAlimentosBundle:Default:_tablaAlimentos.html.twig'</span> <span class="k">with</span> <span class="o">{</span><span class="s1">'resultado'</span><span class="o">:</span> <span class="nv">resultado</span><span class="o">}</span> <span class="cp">%}</span></pre>
+</div>
+</div>
+</div>
+<div class="section" id="estructura-basica-de-una-ruta">
+<h3>Estructura básica de una ruta<a class="headerlink" title="Enlazar permanentemente con este título" href="#estructura-basica-de-una-ruta">¶</a></h3>
+<div class="highlight-yaml">
+<div class="highlight">
+<pre><span class="l-Scalar-Plain">nombre_unico_de_la_ruta</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/el/patron/de/la/ruta/{param1}/{param2}/.../{paramN}</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">NombreLogico</span><span class="p-Indicator">:</span><span class="nv">del</span><span class="p-Indicator">:</span><span class="nv">Controlador</span> <span class="p-Indicator">}</span>
+
+<span class="l-Scalar-Plain">Ejemplo</span><span class="p-Indicator">:</span>
+
+<span class="l-Scalar-Plain">JAMAB_ver</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">pattern</span><span class="p-Indicator">:</span>  <span class="l-Scalar-Plain">/ver/{id}</span>
+  <span class="l-Scalar-Plain">defaults</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span> <span class="nv">_controller</span><span class="p-Indicator">:</span> <span class="nv">JazzywebAulasMentorAlimentosBundle</span><span class="p-Indicator">:</span><span class="nv">Default</span><span class="p-Indicator">:</span><span class="nv">ver</span> <span class="p-Indicator">}</span></pre>
+</div>
+</div>
+
+<hr class="docutils" />
+
+<table class="docutils footnote" id="id4" frame="void" rules="none"><colgroup> <col class="label" /> <col /></colgroup>
+<tbody valign="top">
+<tr>
+<td class="label"><a class="fn-backref" href="#id1">[1]</a></td>
+<td>Drupal 8, phpBB4, Silex, son el nombre de algunos de los proyectos que
+han optado por utilizar los componentes de <em>Symfony2</em>.</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils footnote" id="id5" frame="void" rules="none"><colgroup> <col class="label" /> <col /></colgroup>
+<tbody valign="top">
+<tr>
+<td class="label"><a class="fn-backref" href="#id2">[2]</a></td>
+<td>Algunos de los componentes ya cuentan con documentación: <a class="reference external" href="http://symfony.com/doc/current/components">http://symfony.com/doc/current/components</a></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils footnote" id="id6" frame="void" rules="none"><colgroup> <col class="label" /> <col /></colgroup>
+<tbody valign="top">
+<tr>
+<td class="label"><a class="fn-backref" href="#id3">[3]</a></td>
+<td><a class="reference external" href="https://github.com/symfony">https://github.com/symfony</a></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils footnote" id="id7" frame="void" rules="none"><colgroup> <col class="label" /> <col /></colgroup>
+<tbody valign="top">
+<tr>
+<td class="label">[4]</td>
+<td>Los espacios de nombres son una nueva característica de PHP 5.3. Gracias a
+ellos se evitan problemas comunes en aplicaciones grandes como la colisión
+de nombres de clases. Si no los conoces deberías echarle un vistazo a
+<a class="reference external" href="http://php.net/manual/en/language.namespaces.php">http://php.net/manual/en/language.namespaces.php</a>, ya que <em>Symfony2</em> hace
+un uso intensivo de los ellos.</td>
+</tr>
+</tbody>
+</table>
+
+<hr class="docutils" />
+
+<div style="background-color: #f2f2f2; text-align: center; margin: 20px; padding: 10px;"><a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license"><img style="border-width: 0;" alt="Licencia Creative Commons" src="http://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a><span>Desarrollo de Aplicaciones web con Symfony2</span> por <span>Juan David Rodríguez García (juandavid.rodriguez@ite.educacion.es)</span>se encuentra bajo una Licencia <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/" rel="license">Creative Commons Reconocimiento-NoComercial-CompartirIgual 3.0 Unported</a>.</div>
+</div>
+</div>
